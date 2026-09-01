@@ -1,0 +1,26 @@
+{
+  "manifest_version": 3,
+  "name": "小黄笔 Highlight",
+  "version": "1.0.1",
+  "minimum_chrome_version": "116",
+  "description": "把长视频与播客变成可高亮、可回听、可做笔记的深度阅读稿。",
+  "permissions": ["sidePanel", "storage", "tabs"],
+  "host_permissions": [
+    "https://www.xiaoyuzhoufm.com/*",
+    "https://www.youtube.com/*",
+    "https://api.supadata.ai/*",
+    "https://api.deepseek.com/*",
+    "http://127.0.0.1:8787/*"
+  ],
+  "action": { "default_title": "打开小黄笔" },
+  "background": { "service_worker": "background.js" },
+  "side_panel": { "default_path": "sidepanel.html" },
+  "options_ui": { "page": "options.html", "open_in_tab": true },
+  "content_scripts": [
+    {
+      "matches": ["https://www.xiaoyuzhoufm.com/episode/*", "https://www.youtube.com/watch*", "https://www.youtube.com/shorts/*"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}

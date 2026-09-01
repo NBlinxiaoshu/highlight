@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>小黄笔 · 配置</title>
+    <link rel="stylesheet" href="options.css" />
+  </head>
+  <body>
+    <main class="settings-shell">
+      <header class="settings-hero">
+        <button class="back-button" type="button" aria-label="返回" title="返回"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 6-6 6 6 6"/></svg></button>
+        <div><h1>配置</h1><p class="lead">配置 API Key，解锁转写与精读能力</p><p class="sublead">所有密钥仅保存在本地设备，保障你的隐私安全</p></div>
+      </header>
+      <form id="settingsForm" class="settings-stack">
+        <section class="card api-card aliyun-card">
+          <header class="card-title"><span class="step">01</span><h2>阿里云百炼 <small>（语音转写）</small></h2></header>
+          <select id="asrProvider" class="sr-only" aria-label="转写服务"><option value="aliyun">阿里云百炼</option><option value="supadata">Supadata</option></select>
+          <label for="dashscopeApiKey">DashScope API Key</label>
+          <div class="secret-field"><input id="dashscopeApiKey" type="password" spellcheck="false" autocomplete="off" placeholder="请输入 DashScope API Key" /><button type="button" class="reveal-key" data-reveal="dashscopeApiKey" aria-label="显示或隐藏 API Key"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg></button></div>
+          <label for="dashscopeBaseUrl">百炼 API 地址</label>
+          <input id="dashscopeBaseUrl" type="url" spellcheck="false" autocomplete="off" placeholder="请输入百炼 API 地址" />
+          <p class="field-help">示例：https://xxx.ap-southeast-1.maas.aliyuncs.com/api/v1</p>
+          <div class="resource-link"><span>✨ 没有 API Key？前往阿里云百炼控制台创建</span><a href="https://bailian.console.aliyun.com/" target="_blank" rel="noreferrer">打开控制台 ↗</a></div>
+          <details class="advanced"><summary>备用：继续使用 Supadata</summary><label for="supadataApiKey">Supadata API Key</label><input id="supadataApiKey" type="password" spellcheck="false" autocomplete="off" placeholder="请输入 Supadata API Key" /><p class="field-help">小宇宙走百炼即可；只有看 YouTube 时需要这个。Supadata 有免费档（约 100 次/月），用它抓官方字幕。</p></details>
+        </section>
+        <section class="card api-card deepseek-card">
+          <header class="card-title"><span class="step">02</span><h2>DeepSeek <small>（内容摘要）</small></h2></header>
+          <label for="aiApiKey">DeepSeek API Key</label>
+          <div class="secret-field"><input id="aiApiKey" type="password" spellcheck="false" autocomplete="off" placeholder="请输入 DeepSeek API Key" /><button type="button" class="reveal-key" data-reveal="aiApiKey" aria-label="显示或隐藏 API Key"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg></button></div>
+          <div class="resource-link green"><span>✦ 还没有 DeepSeek API Key？前往平台创建</span><a href="https://platform.deepseek.com/api_keys" target="_blank" rel="noreferrer">创建 Key ↗</a></div>
+        </section>
+        <section class="card api-card sync-card">
+          <header class="card-title"><span class="step">03</span><h2>同步服务 <small>（可选）</small></h2></header>
+          <label for="syncBaseUrl">同步服务地址</label><input id="syncBaseUrl" type="url" spellcheck="false" placeholder="请输入同步服务地址（可选）" />
+          <p class="field-help">示例：http://127.0.0.1:8787</p>
+          <details class="sync-guide"><summary>ⓘ 查看同步服务使用指南</summary><div><p>本地使用：启动项目内的同步服务，地址填写 <code>http://127.0.0.1:8787</code>。</p><p>多设备同步：把同步服务部署到可访问的 HTTPS 地址，填入该地址后保存；登录同一邮箱即可同步节目、原文、摘要与笔记。</p><p>服务不可用时不会影响本地缓存，留空即可只在当前设备使用。</p></div></details>
+        </section>
+        <div class="actions"><button type="submit">保存当前设置</button><span id="status" role="status" aria-live="polite"></span></div>
+      </form>
+      <footer class="privacy-note"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg><div><p>所有密钥仅保存在本地设备，不会上传到服务器</p><p>需要清理时，可以 <button id="clearBtn" type="button">清除全部摘要缓存</button></p></div></footer>
+    </main>
+    <script src="settings.js"></script>
+    <script src="options.js"></script>
+  </body>
+</html>

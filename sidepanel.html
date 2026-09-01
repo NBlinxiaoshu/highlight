@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>小黄笔 Highlight</title>
+    <link rel="stylesheet" href="sidepanel.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <button id="loginBtn" class="topbar-action login-action" type="button">登录</button>
+      <button id="settingsBtn" class="topbar-action topbar-icon" aria-label="打开配置" title="配置"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.7 6.3a4 4 0 0 0-5-5l2.4 2.4-2.8 2.8-2.4-2.4a4 4 0 0 0 5 5L4 14.7a2.1 2.1 0 0 0 3 3l5.7-5.7a4 4 0 0 0 5-5l-2.4 2.4-2.8-2.8Z"/></svg></button>
+    </header>
+
+    <main>
+      <section id="profileView" class="profile-page" aria-labelledby="profileTitle" hidden>
+        <div class="profile-backdrop" aria-hidden="true"></div>
+        <div class="profile-content">
+          <div class="profile-identity">
+            <div><p id="profileGreeting" class="profile-greeting">Hi~ 小澍</p><h1 id="profileTitle">继续上次没听完的吧</h1><p>我在这里等你～</p></div>
+          </div>
+          <div class="profile-layout">
+          <nav class="profile-nav" aria-label="我的页面">
+            <button class="profile-nav-item" type="button" data-profile-section="history"><svg class="tabler-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8v4l2 2"/><path d="M3.05 11a9 9 0 1 0 .5-3M3 4v4h4"/></svg><span>历史记录</span></button>
+            <button class="profile-nav-item selected" type="button" data-profile-section="account"><svg class="tabler-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="7" r="4"/><path d="M5.5 21a6.5 6.5 0 0 1 13 0"/></svg><span>账户设置</span></button>
+            <button class="profile-nav-item" type="button" data-profile-section="preferences"><svg class="tabler-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18h6M10 22h4"/><path d="M8.5 14.5A7 7 0 1 1 15.5 14.5c-.9.7-1.5 1.5-1.5 2.5h-4c0-1-.6-1.8-1.5-2.5Z"/></svg><span>阅读偏好</span></button>
+          </nav>
+          <div class="profile-panels">
+          <section id="profileAccountPanel" class="profile-panel" data-profile-panel="account" aria-labelledby="accountTitle">
+            <h2 id="accountTitle" class="sr-only">账户设置</h2>
+            <div class="profile-settings-card">
+              <button id="profileAvatarBtn" class="profile-setting-row profile-setting-button" type="button"><span>头像</span><span class="profile-setting-value"><img id="profileAvatarPreview" src="IP.png" alt="当前头像" /><i>›</i></span></button>
+              <input id="profileAvatarInput" type="file" accept="image/png,image/jpeg,image/webp" hidden />
+              <div class="profile-setting-row profile-nickname-row"><span>昵称</span><span class="profile-setting-value"><b id="profileNicknameDisplay">小澍</b><button id="editProfileBtn" class="profile-edit-name" type="button" aria-label="修改昵称" title="修改昵称"><svg class="tabler-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L18.5 9.5a2.828 2.828 0 1 0-4-4L4 16v4"/><path d="m13.5 6.5 4 4"/></svg></button><input id="profileNickname" type="text" maxlength="20" autocomplete="nickname" hidden /><button id="saveProfileBtn" type="button" aria-label="保存昵称" hidden>保存</button></span></div>
+              <div class="profile-setting-row"><span>邮箱</span><span class="profile-setting-value"><b id="profileAccountEmail"></b></span></div>
+            </div>
+            <button id="profileLogoutBtn" class="profile-logout" type="button"><svg class="tabler-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M10 17l5-5-5-5M15 12H3"/><path d="M14 3h4a3 3 0 0 1 3 3v12a3 3 0 0 1-3 3h-4"/></svg><span><strong>退出登录</strong><small id="profileEmail"></small></span></button>
+          </section>
+
+          <section id="historyView" class="history-page profile-history profile-panel" data-profile-panel="history" aria-labelledby="historyTitle" hidden>
+            <div class="profile-history-heading">
+              <h2 id="historyTitle"><span class="history-clock" aria-hidden="true"></span>历史记录</h2>
+            </div>
+            <div class="profile-history-tools">
+              <label class="history-search profile-history-search"><span aria-hidden="true"></span><input id="historySearch" type="search" autocomplete="off" placeholder="搜索节目或播客" /></label>
+              <button id="historyFilterBtn" class="history-filter profile-history-filter" type="button" aria-expanded="false" aria-controls="historyFilters" title="选择记录类型" aria-label="选择记录类型"><b id="historyFilterLabel">全部</b><i aria-hidden="true"></i></button>
+            </div>
+            <div id="historyFilters" class="history-filters" hidden>
+              <button type="button" data-history-source="all" class="selected">全部</button>
+              <button type="button" data-history-source="xiaoyuzhou">小宇宙</button>
+              <button type="button" data-history-source="bilibili">bilibili</button>
+              <button type="button" data-history-source="youtube">YouTube</button>
+              <button type="button" data-history-favorite aria-pressed="false">☆ 只看收藏</button>
+            </div>
+            <div id="historyList" class="history-list"></div>
+          </section>
+
+          <section id="profilePreferencesPanel" class="profile-panel" data-profile-panel="preferences" aria-labelledby="preferencesTitle" hidden>
+            <h2 id="preferencesTitle" class="profile-panel-title"><svg class="tabler-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18h6M10 22h4"/><path d="M8.5 14.5A7 7 0 1 1 15.5 14.5c-.9.7-1.5 1.5-1.5 2.5h-4c0-1-.6-1.8-1.5-2.5Z"/></svg>阅读偏好</h2>
+
+            <div class="profile-settings-card preference-card">
+              <label class="preference-row"><span><strong>摘要长度</strong><small>选择每期摘要的默认篇幅</small></span><select id="profileSummaryLength"><option value="short">简短 · 2–3 分钟</option><option value="medium">中等 · 3–5 分钟</option><option value="long">详细 · 6–8 分钟</option></select></label>
+              <label class="preference-row"><span><strong>语言风格</strong><small>决定摘要的表达方式</small></span><select id="profileWritingStyle"><option value="concise">简洁专业</option><option value="conversational">自然易读</option><option value="academic">严谨分析</option></select></label>
+              <fieldset class="focus-preferences"><legend><strong>重点偏好</strong><small>选择 AI 更关注的内容，可多选</small></legend><div class="focus-chips"><label><input type="checkbox" value="viewpoint" />核心观点</label><label><input type="checkbox" value="method" />方法论</label><label><input type="checkbox" value="case" />案例分析</label><label><input type="checkbox" value="fact" />数据事实</label></div></fieldset>
+            </div>
+
+            <div class="preference-section-heading"><strong>提示词工作台</strong><small>产品默认提示词已为内置；下面的补充要求会追加在默认提示词之后，不会覆盖事实边界、原文忠实性与输出格式。展开每项可查看最终发给模型的完整提示词。</small></div>
+
+            <div class="profile-settings-card preference-card prompt-config-card">
+              <label class="prompt-config-item"><span class="prompt-config-label"><strong>说话人识别补充</strong><small>追加在把发言人编号映射为姓名之前</small></span><textarea id="profileTranscriptPrompt" rows="3" placeholder="例如：优先识别节目中的设计师、公司名和英文产品名对应的说话人。"></textarea></label>
+              <div class="prompt-config-details-label"><button type="button" class="prompt-reveal" data-prompt="profTranscriptAssembled" aria-expanded="false">查看完整提示词</button><pre id="profTranscriptAssembled" class="prompt-assembled" hidden></pre></div>
+              <label class="prompt-config-item"><span class="prompt-config-label"><strong>摘要补充</strong><small>追加在章节与速读总览前</small></span><textarea id="profileSummaryPrompt" rows="3" placeholder="例如：多保留人物经历、关键转折和具体数据，少写抽象结论。"></textarea></label>
+              <div class="prompt-config-details-label"><button type="button" class="prompt-reveal" data-prompt="profSummaryAssembled" aria-expanded="false">查看完整提示词</button><pre id="profSummaryAssembled" class="prompt-assembled" hidden></pre></div>
+              <label class="prompt-config-item"><span class="prompt-config-label"><strong>重点标注补充</strong><small>追加在金句、案例与事实识别前</small></span><textarea id="profileHighlightPrompt" rows="3" placeholder="例如：重点标记产品上线、失败实验、组织变化和明确因果判断。"></textarea></label>
+              <div class="prompt-config-details-label"><button type="button" class="prompt-reveal" data-prompt="profHighlightAssembled" aria-expanded="false">查看完整提示词</button><pre id="profHighlightAssembled" class="prompt-assembled" hidden></pre></div>
+              <label class="prompt-config-item"><span class="prompt-config-label"><strong>共读搭子补充</strong><small>追加在共读笔记前</small></span><textarea id="profileCompanionPrompt" rows="3" placeholder="例如：旁注要有明确判断，优先解释为什么这段内容对产品经理有用。"></textarea></label>
+              <div class="prompt-config-details-label"><button type="button" class="prompt-reveal" data-prompt="profCompanionAssembled" aria-expanded="false">查看完整提示词</button><pre id="profCompanionAssembled" class="prompt-assembled" hidden></pre></div>
+            </div>
+
+            <div class="preference-section-heading"><strong>效果预览</strong><small>用一段真实逐字稿检验当前提示词与偏好的组合效果。预览只在本地拼接提示词，不调用模型。</small></div>
+            <div class="profile-settings-card preference-card prompt-preview-card">
+              <label class="prompt-preview-stage"><span>预览环节</span><select id="promptPreviewStage"><option value="summary">摘要提炼</option><option value="highlight">重点标注</option><option value="companion">共读搭子</option><option value="transcript">说话人识别</option></select></label>
+              <div id="promptPreviewPassage" class="prompt-preview-passage"></div>
+              <div class="prompt-preview-actions">
+                <button id="promptPreviewBtn" type="button" class="prompt-preview-btn">组合提示词预览</button>
+                <span id="preferenceSaved" class="preference-saved" role="status" aria-live="polite"></span>
+              </div>
+              <pre id="promptPreviewResult" class="prompt-assembled prompt-preview-result" hidden></pre>
+            </div>
+          </section>
+          </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="emptyState" class="surface empty" hidden><h2>打开一段长内容</h2><p>进入 YouTube 视频或小宇宙单集，再点击“小黄笔”。</p></section>
+
+      <section id="episodeCard" class="episode" hidden>
+        <div id="podcastName" class="eyebrow"></div><h2 id="episodeTitle"></h2>
+      </section>
+
+      <nav id="viewTabs" class="tabs" role="tablist" aria-label="内容视图" hidden>
+        <button id="transcriptTab" class="tab active" type="button" role="tab" aria-selected="true" aria-controls="transcriptView" data-tab="transcript"><svg class="tabler-icon tab-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2z"/><path d="M9 13h6M9 17h6"/></svg><span>原文</span></button>
+        <button id="summaryTab" class="tab" type="button" role="tab" aria-selected="false" aria-controls="summaryView" data-tab="summary"><svg class="tabler-icon tab-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 1.8 5.2a3 3 0 0 0 2 2L21 12l-5.2 1.8a3 3 0 0 0-2 2L12 21l-1.8-5.2a3 3 0 0 0-2-2L3 12l5.2-1.8a3 3 0 0 0 2-2z"/></svg><span>摘要</span></button>
+        <button id="timelineTab" class="tab" type="button" role="tab" aria-selected="false" aria-controls="summaryView" data-tab="timeline"><svg class="tabler-icon tab-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg><span>时间轴</span></button>
+        <button id="notesTab" class="tab" type="button" role="tab" aria-selected="false" aria-controls="notesView" data-tab="notes"><svg class="tabler-icon tab-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L18.5 9.5a2.828 2.828 0 1 0-4-4L4 16v4"/><path d="m13.5 6.5 4 4"/></svg><span>笔记</span><span id="notesCount" class="tab-count" hidden>0</span></button>
+        <div class="tabs-tools">
+          <button id="copySummaryBtn" class="summary-icon-btn" type="button" aria-label="复制摘要" title="复制"><svg class="tabler-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg></button>
+          <button id="exportSummaryBtn" class="summary-icon-btn" type="button" aria-label="导出摘要" title="导出"><svg class="tabler-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 17v2a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-2"/></svg></button>
+          <button id="summarySettingsBtn" class="summary-icon-btn" type="button" aria-label="摘要设置" title="设置"><svg class="tabler-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 0 0-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 0 0-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 0 0-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 0 0-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 0 0 1.066-2.573c-.94-1.543.826-3.31 2.37-2.37c1 .608 2.296.07 2.572-1.065z"/><circle cx="12" cy="12" r="3"/></svg></button>
+        </div>
+        <div id="summaryExportMenu" class="summary-popover export-menu" hidden>
+          <button type="button" data-export="txt">TXT 文本</button><button type="button" data-export="md">Markdown</button><button type="button" data-export="doc">Word 文档</button><button type="button" data-export="pdf">PDF</button><button type="button" data-export="web">网页</button>
+        </div>
+        <div id="summarySettingsPanel" class="summary-popover summary-settings-panel" hidden>
+          <label class="summary-setting-row toggle-row"><span>自动生成</span><input id="summaryAutoGenerateToggle" type="checkbox"><i aria-hidden="true"></i></label>
+          <label class="summary-setting-row toggle-row"><span>自动翻译</span><input id="summaryAutoTranslateToggle" type="checkbox"><i aria-hidden="true"></i></label>
+          <label class="summary-setting-row summary-language"><span>语言</span><select id="summaryLanguageSelect"><option value="zh-CN">中文</option><option value="en">英文</option><option value="zh-en">双语</option></select></label>
+        </div>
+      </nav>
+
+      <section id="summaryView" class="tab-panel" role="tabpanel" aria-labelledby="summaryTab" hidden>
+        <section id="setupState" class="surface" hidden>
+          <h2>先完成设置</h2><p>阿里云百炼负责带时间戳转写，DeepSeek 负责提炼摘要和共读笔记。</p><button id="setupBtn" class="primary">打开设置</button>
+        </section>
+
+        <section id="actions" class="surface generation-empty" hidden>
+          <h2>还没有摘要</h2><p>点击“智能生成”，完成原文转写后会继续整理摘要。</p><button id="fullBtn" class="primary">智能生成</button>
+        </section>
+
+        <section id="progressCard" class="surface progress-card" hidden>
+          <div class="spinner" aria-hidden="true"></div>
+          <div><strong id="progressTitle">正在准备</strong><p id="progressText">请保持侧边栏打开。</p>
+          <div class="progress-track" id="progressTrack" aria-hidden="true"><div class="progress-fill" id="progressFill"></div></div></div>
+        </section>
+
+        <section id="errorCard" class="surface error" hidden>
+          <h2>没有完成</h2><p id="errorText"></p><div class="error-actions"><button id="errorSettingsBtn" class="primary" hidden>查看 Supadata 额度</button><button id="retryBtn" class="secondary">重试</button></div>
+        </section>
+
+        <section id="digest" class="digest" hidden>
+          <div id="digestToolbar" class="digest-toolbar">
+            <div class="digest-length">
+              <button id="summaryLengthToolbar" class="mark-dock-main" type="button" aria-expanded="false"><span id="summaryLengthLabel">中等·3-5分钟</span><svg class="tabler-icon caretdown" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>
+              <div id="summaryLengthPanel" class="mark-dock-panel length-panel" hidden>
+                <button type="button" data-length="short">简短·2-3分钟</button>
+                <button type="button" data-length="medium">中等·3-5分钟</button>
+                <button type="button" data-length="long">详细·6-8分钟</button>
+              </div>
+            </div>
+            <span class="digest-toolbar-spacer"></span>
+            <button id="addQuickReadNoteBtn" class="note-import tooltip-button" type="button" aria-label="把节目摘要写入笔记" data-tooltip="加入笔记"><svg class="ui-action-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L18.5 9.5a2.828 2.828 0 1 0-4-4L4 16v4"/><path d="m13.5 6.5 4 4"/></svg></button>
+          </div>
+          <article id="summaryInsightsPanel" class="content-section summary-lead" role="tabpanel" aria-labelledby="summaryTab"><div class="section-heading"><h2 class="sr-only">要点精读</h2><div class="section-heading summary-actions"></div></div><div id="quickRead" class="document-outline"></div></article>
+          <article id="summaryTimelinePanel" class="content-section chapter-section" role="tabpanel" aria-labelledby="timelineTab" hidden><div id="chapters" class="timeline"></div></article>
+          <div class="regeneration-actions">
+            <button id="regenerateDigestBtn" class="secondary">重新生成</button>
+          </div>
+        </section>
+      </section>
+
+      <section id="transcriptView" class="tab-panel" role="tabpanel" aria-labelledby="transcriptTab">
+        <nav id="readingDock" class="mark-dock" aria-label="划线筛选" hidden>
+          <div class="mark-dock-item">
+            <button id="markHighlightBtn" class="mark-dock-main highlight" type="button" aria-expanded="false" title="高亮内容">高亮<svg class="tabler-icon caretdown" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>
+          </div>
+          <div class="mark-dock-item">
+            <button id="markBoldBtn" class="mark-dock-main bold" type="button" aria-expanded="false" title="加粗层级">加粗<svg class="tabler-icon caretdown" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>
+          </div>
+          <div class="mark-dock-item">
+            <button id="markCustomBtn" class="mark-dock-main custom" type="button" aria-expanded="false" title="智能分析">智能分析<svg class="tabler-icon caretdown" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>
+          </div>
+          <div class="mark-dock-item">
+            <button id="transcriptLangBtn" class="mark-dock-main lang" type="button" aria-expanded="false" title="翻译原文"><span class="mark-dock-lang-icon"><svg class="tabler-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h8M8 3v2M6 3h4"/><path d="M5 9l3 5M8 9l-3 5"/><path d="M12 21l3.5-8 3.5 8"/><path d="M13.5 18h4"/></svg></span><span id="transcriptLangLabel">原文</span><svg class="tabler-icon caretdown" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>
+          </div>
+          <div class="mark-dock-item mark-dock-regen">
+            <button id="regenerateTranscriptBtn" class="mark-dock-main regen" type="button" title="重新生成原文（重跑标注，清空智能分析）"><svg class="tabler-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.3-5.6L4 8"/><path d="M4 4v4h4"/></svg></button>
+          </div>
+          <div id="markDockPanel" class="mark-dock-panel" hidden></div>
+        </nav>
+        <div id="transcriptWorkspace" class="transcript-workspace">
+          <aside id="chapterRail" class="chapter-rail" aria-label="章节目录，悬停查看摘要">
+            <nav id="chapterRailList" class="chapter-rail-list"></nav>
+          </aside>
+          <div class="transcript-main">
+            <section id="transcriptEmpty" class="surface transcript-empty"><h2>还没有原文</h2><p>点击“智能生成”，转写完成的段落会陆续出现在这里。</p><button id="transcriptGenerateBtn" class="primary">智能生成</button></section>
+            <div id="transcriptList" class="transcript-list" aria-live="polite"></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="notesView" class="tab-panel notes-view" role="tabpanel" aria-labelledby="notesTab" hidden>
+        <section class="note-composer" aria-label="新建笔记">
+          <textarea id="noteComposer" maxlength="4000" placeholder="写下想法，或粘贴一段原文…"></textarea>
+          <div class="note-composer-footer"><span>⌘ Enter 保存</span><button id="saveNoteBtn" type="button" disabled>保存</button></div>
+        </section>
+        <section id="notesEmpty" class="notes-empty"><span class="notes-empty-mark" aria-hidden="true"></span><h2>还没有笔记</h2><p>在原文中选择文字，或从摘要一键加入。</p></section>
+        <div id="notesList" class="notes-list"></div>
+      </section>
+    </main>
+
+    <section id="authSheet" class="auth-sheet" aria-label="账号登录" hidden>
+      <button id="authBackdrop" class="sheet-backdrop" type="button" aria-label="关闭登录"></button>
+      <form id="authForm" class="auth-panel">
+        <div class="auth-heading"><div><h2 id="authTitle">登录小黄笔</h2><p>同步阅读历史、逐字稿和笔记。</p></div><button id="closeAuthBtn" class="sheet-close" type="button" aria-label="关闭">×</button></div>
+        <label>邮箱<input id="authEmail" type="email" autocomplete="email" required /></label>
+        <label>密码<div class="password-field"><input id="authPassword" type="password" autocomplete="current-password" minlength="8" required /><button id="togglePasswordBtn" class="password-toggle" type="button" aria-label="显示密码" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg></button></div></label>
+        <p id="authMessage" class="auth-message" hidden></p>
+        <div class="auth-actions"><button id="loginSubmitBtn" class="primary" type="submit">登录</button><button id="registerBtn" class="secondary" type="button">创建账号</button><button id="logoutBtn" class="text-btn" type="button" hidden>退出登录</button></div>
+      </form>
+    </section>
+    <div id="selectionToolbar" class="selection-toolbar" role="toolbar" aria-label="选中文字操作" hidden>
+      <button id="copySelectionBtn" type="button">复制</button>
+      <span class="selection-divider" aria-hidden="true"></span>
+      <button id="boldSelectionBtn" type="button" title="加粗"><b>B</b></button>
+      <button id="hlYellowSelectionBtn" type="button" title="黄色荧光笔"><span class="swatch swatch-yellow" aria-hidden="true"></span></button>
+      <button id="hlGreenSelectionBtn" type="button" title="绿色荧光笔"><span class="swatch swatch-green" aria-hidden="true"></span></button>
+      <button id="clearFormatSelectionBtn" type="button" title="清除格式">清除</button>
+      <span class="selection-divider" aria-hidden="true"></span>
+      <button id="noteSelectionBtn" type="button"><svg class="ui-action-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L18.5 9.5a2.828 2.828 0 1 0-4-4L4 16v4"/><path d="m13.5 6.5 4 4"/></svg>加入笔记</button>
+    </div>
+    <div id="highlightConfirm" class="highlight-confirm" role="toolbar" aria-label="接受或取消高亮" hidden>
+      <button id="acceptHighlightBtn" type="button" class="hc-accept" title="接受高亮"><svg class="ui-action-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg></button>
+      <button id="rejectHighlightBtn" type="button" class="hc-reject" title="取消高亮"><svg class="ui-action-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+    </div>
+    <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+    <script src="platform.js"></script><script src="settings.js"></script><script src="demo-transcript.js"></script><script src="sidepanel.js"></script>
+  </body>
+</html>

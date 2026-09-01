@@ -1,0 +1,13 @@
+.DS_Store
+server/data/*.sqlite
+server/data/*.sqlite-*
+node_modules/
+runtime/
+coverage/
+*.log
+
+# 本地/自动生成，不入库
+.agents/
+design-system/
+*.local
+*.sqlite
