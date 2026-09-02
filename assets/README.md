@@ -15,4 +15,6 @@ README 引用了下面 7 张截图，位于本目录；把真实侧边栏截图�
 此外本目录下的三张平台 logo 由历史记录图标使用：
 `小宇宙_logo.png`、`bilibili_logo.png`、`Youtube_logo.webp`。
 
+`topping.png` 是 README 首屏的装饰横幅（宽幅，示意整体功能），不代表某个具体视图。
+
 > 注：`shot-01-overview.png`（原顶部总览）已在 README 中移除引用，如无需展示可删除该文件。
