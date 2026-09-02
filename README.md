@@ -1,6 +1,6 @@
 # 小黄笔 Highlight
 
-<img src="assets/topping.png" alt="小黄笔：把长视频与播客变成可快速扫读、可回听原声的阅读稿" width="100%" />
+<p align="center"><img src="assets/topping.png" alt="小黄笔：把长视频与播客变成可快速扫读、可回听原声的阅读稿" width="100%" /></p>
 
 ## 为什么做这个
 
@@ -23,8 +23,6 @@
 把下面这段直接发给你的 Coding Agent：
 
 > 把这个项目（https://github.com/NBlinxiaoshu/highlight）克隆或下载到我指定的永久文件夹，并带我完成 Chrome「加载已解压的扩展程序」和 API Key 配置。不要替我保存或暴露任何 Key。安装完成后，打开一段 YouTube / Bilibili / 小宇宙内容，确认原文、摘要、时间轴和原声跳转可以正常使用。
-
-> ⚠️ 不要把 API Key 粘贴进聊天、源码或截图。
 
 ### 自己安装
 
