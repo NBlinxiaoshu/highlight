@@ -86,3 +86,42 @@ test("平衡括号解析能容忍对象内带字符串花括号与转义", () =>
   assert.ok(player);
   assert.equal(player.videoDetails.title, 'a } {  " b');
 });
+
+test("B站 ID 解析支持 BV 号与 av 号，且 parseId/storageKey 正确", () => {
+  assert.equal(platform.bilibiliIdFromUrl("https://www.bilibili.com/video/BV1xx411c7mD"), "BV1xx411c7mD");
+  assert.equal(platform.bilibiliIdFromUrl("https://www.bilibili.com/video/av170001"), "av170001");
+  assert.equal(platform.bilibiliIdFromUrl("https://example.com/video/BV1xx411c7mD"), "");
+  assert.equal(platform.episodeIdPlatform("https://www.bilibili.com/video/BV1xx411c7mD?p=2"), "bilibili");
+  assert.equal(platform.bilibiliIdFromUrl("https://www.bilibili.com/video/BV1xx411c7mD?p=2"), "BV1xx411c7mD:p2");
+  assert.deepEqual(platform.parseId("https://www.bilibili.com/video/BV1xx411c7mD"), { platform: "bilibili", id: "BV1xx411c7mD" });
+  assert.equal(platform.storageKey("bilibili", "BV1xx411c7mD"), "xyd_digest_bili_BV1xx411c7mD");
+  assert.equal(platform.transcriptDependency("bilibili"), "bilibili_subtitle");
+});
+
+test("B站页面数据被规范化为统一 episode 结构（含 cid/无音频地址）", () => {
+  const episode = platform.platforms.bilibili.normalizePageData({
+    bvid: "BV1xx411c7mD",
+    title: "一个B站视频",
+    owner: "某UP主",
+    desc: "简介",
+    duration: 600,
+    cid: 123456,
+  }, "https://www.bilibili.com/video/BV1xx411c7mD");
+  assert.equal(episode.id, "BV1xx411c7mD");
+  assert.equal(episode.channel, "某UP主");
+  assert.equal(episode.cid, 123456);
+  assert.equal(episode.duration, 600);
+  assert.equal(episode.audioUrl, "");
+  assert.equal(platform.platforms.bilibili.transcript, "captions");
+});
+
+test("B站多 P 课程使用独立缓存 ID、分 P 标题和时长", () => {
+  const episode = platform.platforms.bilibili.normalizePageData({ data: {
+    bvid: "BV1xx411c7mD", aid: 12, title: "经济学原理", owner: { name: "清华大学" }, duration: 9999,
+    pages: [{ page: 1, cid: 101, part: "导论", duration: 1200 }, { page: 2, cid: 102, part: "稀缺", duration: 1300 }],
+  } }, "https://www.bilibili.com/video/BV1xx411c7mD?p=2");
+  assert.equal(episode.id, "BV1xx411c7mD:p2");
+  assert.equal(episode.cid, 102);
+  assert.equal(episode.duration, 1300);
+  assert.match(episode.title, /稀缺/);
+});

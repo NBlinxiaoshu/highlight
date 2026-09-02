@@ -24,7 +24,7 @@
 
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
-    const value = XYD_SETTINGS.normalize({ ...currentSettings, asrProvider: asrProvider.value, dashscopeApiKey: dashscope.value, dashscopeBaseUrl: dashscopeBaseUrl.value, supadataApiKey: supadata.value, aiApiKey: ai.value, syncBaseUrl: syncBaseUrl.value });
+    const value = XYD_SETTINGS.normalize({ ...currentSettings, asrProvider: "aliyun", dashscopeApiKey: dashscope.value, dashscopeBaseUrl: dashscopeBaseUrl.value, supadataApiKey: supadata.value, aiApiKey: ai.value, syncBaseUrl: syncBaseUrl.value });
     currentSettings = value;
     await chrome.storage.local.set({ [XYD_SETTINGS.STORAGE_KEY]: value });
     status.textContent = "已保存到本机";

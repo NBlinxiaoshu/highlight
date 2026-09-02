@@ -4,10 +4,14 @@
   "version": "1.0.1",
   "minimum_chrome_version": "116",
   "description": "把长视频与播客变成可高亮、可回听、可做笔记的深度阅读稿。",
-  "permissions": ["sidePanel", "storage", "tabs"],
+  "permissions": ["sidePanel", "storage", "tabs", "clipboardWrite", "downloads"],
   "host_permissions": [
     "https://www.xiaoyuzhoufm.com/*",
     "https://www.youtube.com/*",
+    "https://*.bilibili.com/*",
+    "https://api.bilibili.com/*",
+    "https://*.hdslb.com/*",
+    "https://*.bilivideo.com/*",
     "https://api.supadata.ai/*",
     "https://api.deepseek.com/*",
     "http://127.0.0.1:8787/*"
@@ -18,7 +22,7 @@
   "options_ui": { "page": "options.html", "open_in_tab": true },
   "content_scripts": [
     {
-      "matches": ["https://www.xiaoyuzhoufm.com/episode/*", "https://www.youtube.com/watch*", "https://www.youtube.com/shorts/*"],
+      "matches": ["https://www.xiaoyuzhoufm.com/episode/*", "https://www.youtube.com/watch*", "https://www.youtube.com/shorts/*", "https://*.bilibili.com/video/*", "https://bilibili.com/video/*"],
       "js": ["content.js"],
       "run_at": "document_idle"
     }

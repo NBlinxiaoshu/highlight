@@ -73,13 +73,11 @@
               <div class="prompt-config-details-label"><button type="button" class="prompt-reveal" data-prompt="profSummaryAssembled" aria-expanded="false">查看完整提示词</button><pre id="profSummaryAssembled" class="prompt-assembled" hidden></pre></div>
               <label class="prompt-config-item"><span class="prompt-config-label"><strong>重点标注补充</strong><small>追加在金句、案例与事实识别前</small></span><textarea id="profileHighlightPrompt" rows="3" placeholder="例如：重点标记产品上线、失败实验、组织变化和明确因果判断。"></textarea></label>
               <div class="prompt-config-details-label"><button type="button" class="prompt-reveal" data-prompt="profHighlightAssembled" aria-expanded="false">查看完整提示词</button><pre id="profHighlightAssembled" class="prompt-assembled" hidden></pre></div>
-              <label class="prompt-config-item"><span class="prompt-config-label"><strong>共读搭子补充</strong><small>追加在共读笔记前</small></span><textarea id="profileCompanionPrompt" rows="3" placeholder="例如：旁注要有明确判断，优先解释为什么这段内容对产品经理有用。"></textarea></label>
-              <div class="prompt-config-details-label"><button type="button" class="prompt-reveal" data-prompt="profCompanionAssembled" aria-expanded="false">查看完整提示词</button><pre id="profCompanionAssembled" class="prompt-assembled" hidden></pre></div>
             </div>
 
-            <div class="preference-section-heading"><strong>效果预览</strong><small>用一段真实逐字稿检验当前提示词与偏好的组合效果。预览只在本地拼接提示词，不调用模型。</small></div>
+            <div class="preference-section-heading"><strong>效果预览</strong><small>用一段真实原文检验当前提示词与偏好的组合效果。预览只在本地拼接提示词，不调用模型。</small></div>
             <div class="profile-settings-card preference-card prompt-preview-card">
-              <label class="prompt-preview-stage"><span>预览环节</span><select id="promptPreviewStage"><option value="summary">摘要提炼</option><option value="highlight">重点标注</option><option value="companion">共读搭子</option><option value="transcript">说话人识别</option></select></label>
+              <label class="prompt-preview-stage"><span>预览环节</span><select id="promptPreviewStage"><option value="summary">摘要提炼</option><option value="highlight">重点标注</option><option value="transcript">说话人识别</option></select></label>
               <div id="promptPreviewPassage" class="prompt-preview-passage"></div>
               <div class="prompt-preview-actions">
                 <button id="promptPreviewBtn" type="button" class="prompt-preview-btn">组合提示词预览</button>
@@ -121,11 +119,11 @@
 
       <section id="summaryView" class="tab-panel" role="tabpanel" aria-labelledby="summaryTab" hidden>
         <section id="setupState" class="surface" hidden>
-          <h2>先完成设置</h2><p>阿里云百炼负责带时间戳转写，DeepSeek 负责提炼摘要和共读笔记。</p><button id="setupBtn" class="primary">打开设置</button>
+          <h2>先完成设置</h2><p>先准备好这一集的原文，再由 DeepSeek 提炼摘要和标注。</p><button id="setupBtn" class="primary">打开设置</button>
         </section>
 
         <section id="actions" class="surface generation-empty" hidden>
-          <h2>还没有摘要</h2><p>点击“智能生成”，完成原文转写后会继续整理摘要。</p><button id="fullBtn" class="primary">智能生成</button>
+          <h2>还没有摘要</h2><p>点击“智能生成”，拿到原文后会继续整理摘要。</p><button id="fullBtn" class="primary">智能生成</button>
         </section>
 
         <section id="progressCard" class="surface progress-card" hidden>
@@ -151,8 +149,8 @@
             <span class="digest-toolbar-spacer"></span>
             <button id="addQuickReadNoteBtn" class="note-import tooltip-button" type="button" aria-label="把节目摘要写入笔记" data-tooltip="加入笔记"><svg class="ui-action-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L18.5 9.5a2.828 2.828 0 1 0-4-4L4 16v4"/><path d="m13.5 6.5 4 4"/></svg></button>
           </div>
-          <article id="summaryInsightsPanel" class="content-section summary-lead" role="tabpanel" aria-labelledby="summaryTab"><div class="section-heading"><h2 class="sr-only">要点精读</h2><div class="section-heading summary-actions"></div></div><div id="quickRead" class="document-outline"></div></article>
-          <article id="summaryTimelinePanel" class="content-section chapter-section" role="tabpanel" aria-labelledby="timelineTab" hidden><div id="chapters" class="timeline"></div></article>
+          <article id="summaryInsightsPanel" class="content-section summary-lead" role="tabpanel" aria-labelledby="summaryTab"><div class="section-heading"><h2 class="sr-only">要点精读</h2><div class="section-heading summary-actions"></div></div><div id="quickRead" class="document-outline"></div><div id="summaryProgress" class="panel-progress" hidden></div></article>
+          <article id="summaryTimelinePanel" class="content-section chapter-section" role="tabpanel" aria-labelledby="timelineTab" hidden><div id="chapters" class="timeline"></div><div id="timelineProgress" class="panel-progress" hidden></div></article>
           <div class="regeneration-actions">
             <button id="regenerateDigestBtn" class="secondary">重新生成</button>
           </div>
@@ -174,7 +172,7 @@
             <button id="transcriptLangBtn" class="mark-dock-main lang" type="button" aria-expanded="false" title="翻译原文"><span class="mark-dock-lang-icon"><svg class="tabler-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h8M8 3v2M6 3h4"/><path d="M5 9l3 5M8 9l-3 5"/><path d="M12 21l3.5-8 3.5 8"/><path d="M13.5 18h4"/></svg></span><span id="transcriptLangLabel">原文</span><svg class="tabler-icon caretdown" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>
           </div>
           <div class="mark-dock-item mark-dock-regen">
-            <button id="regenerateTranscriptBtn" class="mark-dock-main regen" type="button" title="重新生成原文（重跑标注，清空智能分析）"><svg class="tabler-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.3-5.6L4 8"/><path d="M4 4v4h4"/></svg></button>
+            <button id="regenerateTranscriptBtn" class="mark-dock-main regen" type="button" title="重新获取原文、顺句并重新标注"><svg class="tabler-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.3-5.6L4 8"/><path d="M4 4v4h4"/></svg></button>
           </div>
           <div id="markDockPanel" class="mark-dock-panel" hidden></div>
         </nav>
@@ -183,7 +181,11 @@
             <nav id="chapterRailList" class="chapter-rail-list"></nav>
           </aside>
           <div class="transcript-main">
-            <section id="transcriptEmpty" class="surface transcript-empty"><h2>还没有原文</h2><p>点击“智能生成”，转写完成的段落会陆续出现在这里。</p><button id="transcriptGenerateBtn" class="primary">智能生成</button></section>
+            <div id="transcriptProgress" class="transcript-progress" hidden>
+              <div class="spinner" aria-hidden="true"></div>
+              <div class="transcript-progress-body"><strong id="transcriptProgressTitle">正在准备</strong><div class="progress-track" aria-hidden="true"><div class="progress-fill" id="transcriptProgressFill"></div></div></div>
+            </div>
+            <section id="transcriptEmpty" class="surface transcript-empty"><h2>还没有原文</h2><p>点击“智能生成”，原文会陆续出现在这里。</p><button id="transcriptGenerateBtn" class="primary">智能生成</button></section>
             <div id="transcriptList" class="transcript-list" aria-live="polite"></div>
           </div>
         </div>
@@ -202,7 +204,7 @@
     <section id="authSheet" class="auth-sheet" aria-label="账号登录" hidden>
       <button id="authBackdrop" class="sheet-backdrop" type="button" aria-label="关闭登录"></button>
       <form id="authForm" class="auth-panel">
-        <div class="auth-heading"><div><h2 id="authTitle">登录小黄笔</h2><p>同步阅读历史、逐字稿和笔记。</p></div><button id="closeAuthBtn" class="sheet-close" type="button" aria-label="关闭">×</button></div>
+        <div class="auth-heading"><div><h2 id="authTitle">登录小黄笔</h2><p>同步阅读历史、原文和笔记。</p></div><button id="closeAuthBtn" class="sheet-close" type="button" aria-label="关闭">×</button></div>
         <label>邮箱<input id="authEmail" type="email" autocomplete="email" required /></label>
         <label>密码<div class="password-field"><input id="authPassword" type="password" autocomplete="current-password" minlength="8" required /><button id="togglePasswordBtn" class="password-toggle" type="button" aria-label="显示密码" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg></button></div></label>
         <p id="authMessage" class="auth-message" hidden></p>
@@ -224,6 +226,6 @@
       <button id="rejectHighlightBtn" type="button" class="hc-reject" title="取消高亮"><svg class="ui-action-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
     </div>
     <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
-    <script src="platform.js"></script><script src="settings.js"></script><script src="demo-transcript.js"></script><script src="sidepanel.js"></script>
+    <script src="platform.js"></script><script src="settings.js"></script><script src="pipeline.js"></script><script src="demo-transcript.js"></script><script src="demo-library.js"></script><script src="sidepanel.js"></script>
   </body>
 </html>

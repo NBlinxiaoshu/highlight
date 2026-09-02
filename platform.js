@@ -17,6 +17,9 @@ var XYD_PLATFORM = (() => {
   "use strict";
 
   const XIAOYUZHOU_ID = /^https:\/\/www\.xiaoyuzhoufm\.com\/episode\/([a-f0-9]{24})(?:[/?#]|$)/i;
+  const BILI_BV = /bilibili\.com\/video\/(BV[0-9A-Za-z]{10})(?:[/?#]|$)/i;
+  const BILI_AV = /bilibili\.com\/video\/av(\d+)(?:[/?#]|$)/i;
+  const BILI_SHORT = /b23\.tv\/([A-Za-z0-9]+)(?:[/?#]|$)/i;
   const YT_ID = (() => {
     // 匹配常见的 YouTube 短视频 URL：watch?v=、youtu.be/、shorts/、embed/
     const patterns = [
@@ -42,6 +45,16 @@ var XYD_PLATFORM = (() => {
     return "";
   }
 
+  function bilibiliIdFromUrl(url) {
+    const value = String(url || "");
+    const bv = value.match(BILI_BV);
+    const page = (() => { try { return Math.max(1, Number(new URL(value).searchParams.get("p")) || 1); } catch (_error) { return 1; } })();
+    if (bv) return `${String(bv[1])}${page > 1 ? `:p${page}` : ""}`;
+    const av = value.match(BILI_AV);
+    if (av) return `av${av[1]}${page > 1 ? `:p${page}` : ""}`;
+    return "";
+  }
+
   function text(value, max = 500) {
     return typeof value === "string" ? value.trim().slice(0, max) : "";
   }
@@ -49,6 +62,7 @@ var XYD_PLATFORM = (() => {
   function episodeIdPlatform(url) {
     if (xiaoyuzhouIdFromUrl(url)) return "xiaoyuzhou";
     if (youtubeIdFromUrl(url)) return "youtube";
+    if (bilibiliIdFromUrl(url)) return "bilibili";
     return "";
   }
 
@@ -166,6 +180,36 @@ var XYD_PLATFORM = (() => {
         };
       },
     },
+    bilibili: {
+      id: "bilibili",
+      label: "B站",
+      idFromUrl: bilibiliIdFromUrl,
+      transcript: "captions", // 官方字幕接口（页面上下文 + WBI + Cookie）
+      normalizePageData(raw, pageUrl) {
+        if (!raw || typeof raw !== "object") return null;
+        const info = raw?.data || raw; // 兼容 view 接口的 {data:{...}} 或轻量对象
+        const baseId = text(raw?.bvid || info?.bvid, 20) || bilibiliIdFromUrl(pageUrl).split(":p")[0];
+        const page = (() => { try { return Math.max(1, Number(new URL(pageUrl).searchParams.get("p")) || Number(raw?.page) || 1); } catch (_error) { return 1; } })();
+        const pages = Array.isArray(info?.pages) ? info.pages : [];
+        const targetPage = pages.find((item) => Number(item?.page) === page) || pages[0] || {};
+        const id = `${baseId}${page > 1 ? `:p${page}` : ""}`;
+        if (!id && !text(raw?.title, 20)) return null;
+        return {
+          id: id || `av${Number(info?.aid || raw?.aid || 0) || 0}`,
+          title: text(page > 1 && targetPage?.part ? `${raw?.title || info?.title || "未命名的视频"} · ${targetPage.part}` : raw?.title || info?.title || "未命名的视频", 500),
+          channel: text(raw?.owner || info?.owner?.name || "B站UP主", 300),
+          podcast: text(raw?.owner || info?.owner?.name || "B站UP主", 300),
+          description: text(raw?.desc || info?.desc || "", 100000),
+          duration: Math.max(0, Number(targetPage?.duration || raw?.duration || info?.duration || 0)),
+          audioUrl: "",
+          cid: Math.max(0, Number(raw?.cid || targetPage?.cid || info?.cid || 0)),
+          page,
+          bvid: baseId,
+          aid: Math.max(0, Number(raw?.aid || info?.aid || 0)),
+          pageUrl: String(pageUrl || ""),
+        };
+      },
+    },
   };
 
   function detectPlatform(url) {
@@ -181,6 +225,7 @@ var XYD_PLATFORM = (() => {
 
   function storageKey(platformId, id) {
     if (platformId === "youtube") return `xyd_digest_yt_${id}`;
+    if (platformId === "bilibili") return `xyd_digest_bili_${id}`;
     if (platformId === "xiaoyuzhou") return `xyd_digest_${id}`;
     throw new Error("未知平台");
   }
@@ -189,6 +234,7 @@ var XYD_PLATFORM = (() => {
   // 归一化逻辑已在 sidepanel.normalizeTranscript 内，这里只描述来源，避免重复判定。
   function transcriptDependency(platformId) {
     if (platformId === "youtube") return "supadata_youtube_transcript";
+    if (platformId === "bilibili") return "bilibili_subtitle";
     if (platformId === "xiaoyuzhou") return "audio_asr";
     return "";
   }
@@ -201,6 +247,7 @@ var XYD_PLATFORM = (() => {
     episodeIdPlatform,
     xiaoyuzhouIdFromUrl,
     youtubeIdFromUrl,
+    bilibiliIdFromUrl,
     transcriptDependency,
     youtubePlayerResponseFromHtml,
     // 供现有 settings/episodeIdFromUrl 逻辑复用

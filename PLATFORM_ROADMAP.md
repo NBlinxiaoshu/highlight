@@ -1,13 +1,13 @@
 # 跨平台 + Agent/Skill 深化路线图
 
 > 文档版本：1.0 · 2026-09-01
-> 当前状态：已加入共性核心 `platform.js` 与 YouTube 数据取稿路径，可复用能力验证通过（31 个单测全绿）。
+> 当前状态：YouTube、小宇宙与 Bilibili 来源层均已接入；B 站优先使用免费官方字幕，无字幕课程可回退百炼 ASR。
 > 本页回答两件事：① 能不能看 YouTube / Bilibili，能复用多少；② 作为完整 agent 产品，怎么深化 harness / skill 能力。
 
 ## 0. 一句话结论
 
 - **跨平台可行，且复用率约 60–70%**。能搬的是「摘要大脑 + 后处理 + 渲染 + 后端 + 缓存 + 设置」；必须新建的是每个平台的「来源层」。
-- **优先级建议：YouTube > Bilibili。** YouTube 有官方字幕，可跳过最贵、最脆的整段 ASR；Bilibili 反爬 + AI 字幕要登录 + 音视分离，成本最高、应后置。
+- YouTube 通过 Supadata `native` 模式读取已有字幕；Bilibili 优先读取官方字幕、缺失时读取当前分 P 音频并回退百炼 ASR；小宇宙固定使用百炼 ASR。
 - **要变成 agent 产品，最大杠杆是「核心搬 server + skill 注册表/编排层」**，否则推荐、定时、批量这些能力在 Chrome 扩展里跑不动。
 
 ## 1. 共性核心（可复用，约 60–70%）
@@ -18,8 +18,8 @@
 - LLM 层：`callDeepSeek` `extractJson` 与各 Prompt
 - Map-Reduce 摘要管线：`digestFromCurrentTranscript` `fullDigest` `generateDigest`
 - 后处理：`identifySpeakerNames` `correctTranscriptWithAgent` `refineTranscriptWithAgents`
-- 标注引擎：`ensureAnnotationDensity` `applyGeneratedHighlights` `isLowValueOrPromotionalText`（Case / 金句 / 关键事实）
-- 渲染层：双栏原文/摘要、章节山谷目录、播放跟随、搭子、笔记、工具栏
+- 标注引擎：`applyGeneratedHighlights` `isLowValueOrPromotionalText` `toggleHighlightCategory` `regenerateAnnotationsFromDock`（核心观点/数据事实→黄，方法论/案例分析→加粗，Case→整段卡片）
+- 渲染层：双栏原文/摘要、章节山谷目录、播放跟随、智能分析（自定义方向标注）、笔记、工具栏
 - 后端：auth / library / asr cache、`/v1/asr/jobs`（submit/poll/normalize）
 - 设置与本地优先缓存、安全渲染（只走 `textContent`）
 
@@ -40,16 +40,17 @@
 
 - 取 ID：`watch?v=`、`youtu.be/`、`shorts/`、`embed/`（`platform.youtubeIdFromUrl`）。
 - 取元数据：sidepanel 抓取 watch 页 HTML，用平衡括号解析 `ytInitialPlayerResponse`（`platform.youtubePlayerResponseFromHtml`），无需 MAIN-world 桥，且已在 Node 单测覆盖。
-- 取稿：`requestYoutubeTranscript(videoId)` → `https://api.supadata.ai/v1/youtube/transcript`，复用 `normalizeTranscript`（`content[].offset/duration` 毫秒自动换算秒）。**无 ASR，便宜且快**。
+- 取稿：`requestYoutubeTranscript(videoId)` → `https://api.supadata.ai/v1/transcript?mode=native`，复用 `normalizeTranscript`（`content[].offset/duration` 毫秒自动换算秒）。不允许自动回退 AI 转写。
 - 播放/seek：content.js 统一兜底查 `video`/`audio` 元素（`seekTo`/`getPlaybackState`）。
 - manifest 已加 `https://www.youtube.com/*` host 权限与 content_scripts `watch/shorts` 匹配；background 通过 `XYD_PLATFORM.detectPlatform` 开启面板；sidepanel 已按平台取存储键（`xyd_digest_yt_<id>`）。
 
-### 2.2 Bilibili（未接入，建议后置，先给设计）
+### 2.2 Bilibili（已接入）
 
 - 取 ID：`BV...` / `av...` 解析。
-- 取内容：`window.__INITIAL_STATE__` 是**全局变量，不在 DOM 节点里**，isolated-world content script 读不到。方案：`world: "MAIN"` 注入 + `postMessage`/CustomEvent 回传，或由后端拉页面自己解析。比 `__NEXT_DATA__` 难一截。
-- 取稿：AI 字幕接口需登录态 + cookie + WBI 签名（见 [bilibili-API-collect](https://deepwiki.com/SocialSisterYi/bilibili-API-collect/4.1.6-ai-summary-and-features#1) / [bili_ai_subtitle](https://github.com/wnma3mz/bili_ai_subtitle#1)）；音频也是分离流，后端需额外下载。
-- 建议：复用相同 `platform` 契约，新增 `bilibili` 实现 + 「后端音频下载/字幕取稿」步骤。
+- 取内容：content script 调用 `x/web-interface/view`，按当前分 P 选择正确 `cid`。
+- 取稿：带浏览器登录态调用 `x/player/wbi/v2`，优先下载官方字幕轨；无轨道时可用 DashScope Key 转写当前分 P 的公开音频。
+- 顺句：先确定性清理滚动重复、隐藏字符、纯音效与异常时长，再按字幕 ID 小批量补标点和修正明确同音错字；失败批次保留原字幕。
+- 长视频时间轴：按字幕边界切块，下一块携带上一块尾部上下文，合并后分布式裁剪，避免章节只集中在开头。
 
 ## 3. 落地清单（当前位置）
 
@@ -92,7 +93,7 @@
 「爬播放量 Top10 播客」涉及批量抓取，播放量接口对 YouTube/B站都难稳定拿到，也有 ToS 风险。稳妥做法是让 skill 的来源可配置（关注列表 / 官方榜单 / 关键词搜索），排序由产品控制，不硬爬全库播放量。推荐结果再走摘要大脑生成“是否值得听”的理由。
 
 ### 4.4 记忆/个性化
-已有关注偏好、搭子、阅读偏好；扩成「消费历史 + 个人主题画像」，让推荐与摘要针对个人而非通用。
+已有关注偏好、智能分析方向、阅读偏好；扩成「消费历史 + 个人主题画像」，让推荐与摘要针对个人而非通用。
 
 ## 5. 建议下一步
 

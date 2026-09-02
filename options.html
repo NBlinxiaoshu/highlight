@@ -10,19 +10,19 @@
     <main class="settings-shell">
       <header class="settings-hero">
         <button class="back-button" type="button" aria-label="返回" title="返回"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 6-6 6 6 6"/></svg></button>
-        <div><h1>配置</h1><p class="lead">配置 API Key，解锁转写与精读能力</p><p class="sublead">所有密钥仅保存在本地设备，保障你的隐私安全</p></div>
+        <div><h1>配置</h1><p class="lead">按平台配置取稿与精读能力</p><p class="sublead">密钥只保存在本机，仅在你主动生成时发往对应 API</p></div>
       </header>
       <form id="settingsForm" class="settings-stack">
         <section class="card api-card aliyun-card">
-          <header class="card-title"><span class="step">01</span><h2>阿里云百炼 <small>（语音转写）</small></h2></header>
+          <header class="card-title"><span class="step">01</span><h2>内容来源 <small>（按平台固定）</small></h2></header>
           <select id="asrProvider" class="sr-only" aria-label="转写服务"><option value="aliyun">阿里云百炼</option><option value="supadata">Supadata</option></select>
-          <label for="dashscopeApiKey">DashScope API Key</label>
+          <label for="dashscopeApiKey">小宇宙 · DashScope API Key</label>
           <div class="secret-field"><input id="dashscopeApiKey" type="password" spellcheck="false" autocomplete="off" placeholder="请输入 DashScope API Key" /><button type="button" class="reveal-key" data-reveal="dashscopeApiKey" aria-label="显示或隐藏 API Key"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg></button></div>
           <label for="dashscopeBaseUrl">百炼 API 地址</label>
           <input id="dashscopeBaseUrl" type="url" spellcheck="false" autocomplete="off" placeholder="请输入百炼 API 地址" />
           <p class="field-help">示例：https://xxx.ap-southeast-1.maas.aliyuncs.com/api/v1</p>
           <div class="resource-link"><span>✨ 没有 API Key？前往阿里云百炼控制台创建</span><a href="https://bailian.console.aliyun.com/" target="_blank" rel="noreferrer">打开控制台 ↗</a></div>
-          <details class="advanced"><summary>备用：继续使用 Supadata</summary><label for="supadataApiKey">Supadata API Key</label><input id="supadataApiKey" type="password" spellcheck="false" autocomplete="off" placeholder="请输入 Supadata API Key" /><p class="field-help">小宇宙走百炼即可；只有看 YouTube 时需要这个。Supadata 有免费档（约 100 次/月），用它抓官方字幕。</p></details>
+          <details class="advanced" open><summary>YouTube · Supadata 官方字幕</summary><label for="supadataApiKey">Supadata API Key</label><input id="supadataApiKey" type="password" spellcheck="false" autocomplete="off" placeholder="请输入 Supadata API Key" /><p class="field-help">只使用 native 模式读取已有字幕，不自动回退 AI 转写。B 站直接使用免费官方字幕接口，无需 Key。</p></details>
         </section>
         <section class="card api-card deepseek-card">
           <header class="card-title"><span class="step">02</span><h2>DeepSeek <small>（内容摘要）</small></h2></header>
@@ -38,7 +38,7 @@
         </section>
         <div class="actions"><button type="submit">保存当前设置</button><span id="status" role="status" aria-live="polite"></span></div>
       </form>
-      <footer class="privacy-note"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg><div><p>所有密钥仅保存在本地设备，不会上传到服务器</p><p>需要清理时，可以 <button id="clearBtn" type="button">清除全部摘要缓存</button></p></div></footer>
+      <footer class="privacy-note"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg><div><p>密钥只保存在本机；仅在你主动生成时发送给对应服务</p><p>需要清理时，可以 <button id="clearBtn" type="button">清除全部摘要缓存</button></p></div></footer>
     </main>
     <script src="settings.js"></script>
     <script src="options.js"></script>

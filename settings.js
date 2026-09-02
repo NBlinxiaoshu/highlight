@@ -18,8 +18,8 @@ var XYD_SETTINGS = (() => {
     highlightLevels: [1, 2],
     boldLevels: [1],
     markTypes: ["quote", "case", "method", "fact"],
-    highlightTypes: ["quote", "method"],
-    boldTypes: ["case", "fact"],
+    highlightTypes: ["quote", "fact"],
+    boldTypes: ["method", "case"],
     customItems: [],
     customColor: "#ff9500",
     customGoal: "",
@@ -30,7 +30,6 @@ var XYD_SETTINGS = (() => {
     transcriptPrompt: "",
     summaryPrompt: "",
     highlightPrompt: "",
-    companionPrompt: "",
   });
 
   function normalize(input = {}) {
@@ -69,10 +68,10 @@ var XYD_SETTINGS = (() => {
         .filter((level) => [1, 2, 3, 4].includes(level)).sort((a, b) => a - b),
       markTypes: Array.from(new Set(Array.isArray(input.markTypes) ? input.markTypes : DEFAULTS.markTypes))
         .filter((value) => ["quote", "case", "method", "fact", "custom"].includes(value)),
-      highlightTypes: Array.from(new Set(Array.isArray(input.highlightTypes) ? input.highlightTypes : DEFAULTS.highlightTypes))
-        .filter((value) => ["quote", "fact", "method", "case"].includes(value)),
-      boldTypes: Array.from(new Set(Array.isArray(input.boldTypes) ? input.boldTypes : DEFAULTS.boldTypes))
-        .filter((value) => ["quote", "fact", "method", "case"].includes(value)),
+      highlightTypes: ((filtered) => filtered.length ? filtered : DEFAULTS.highlightTypes)(Array.from(new Set(Array.isArray(input.highlightTypes) ? input.highlightTypes : DEFAULTS.highlightTypes))
+        .filter((value) => ["quote", "fact", "method", "case"].includes(value))),
+      boldTypes: ((filtered) => filtered.length ? filtered : DEFAULTS.boldTypes)(Array.from(new Set(Array.isArray(input.boldTypes) ? input.boldTypes : DEFAULTS.boldTypes))
+        .filter((value) => ["quote", "fact", "method", "case"].includes(value))),
       customItems: (Array.isArray(input.customItems) && !input.customItems.includes("custom"))
         ? Array.from(new Set(input.customItems)).filter((value) => ["ai", "product", "business"].includes(value))
         : [],
@@ -85,7 +84,6 @@ var XYD_SETTINGS = (() => {
       transcriptPrompt: typeof input.transcriptPrompt === "string" ? input.transcriptPrompt.trim().slice(0, 2000) : "",
       summaryPrompt: typeof input.summaryPrompt === "string" ? input.summaryPrompt.trim().slice(0, 2000) : "",
       highlightPrompt: typeof input.highlightPrompt === "string" ? input.highlightPrompt.trim().slice(0, 2000) : "",
-      companionPrompt: typeof input.companionPrompt === "string" ? input.companionPrompt.trim().slice(0, 2000) : "",
     };
   }
 

@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Mark-dock 动态效果预览</title>
+<style>
+  :root {
+    --ink: #1d1d1f; --secondary: #6e6e73; --yellow: #ffc928;
+    --line: #ebe8df; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", "Helvetica Neue", Arial, sans-serif;
+  }
+  html, body { background: #fff; color: var(--ink); }
+  .stage { max-width: 640px; margin: 40px auto; padding: 24px; background: #fff; }
+  .stage h1 { font-size: 16px; margin: 0 0 6px; }
+  .stage p { font-size: 12px; color: var(--secondary); margin: 0 0 20px; }
+  /* 复刻 sidepanel.css 里的 mark-dock 相关样式 */
+  .mark-dock { position: relative; z-index: 9; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 8px 2px 10px; }
+  .mark-dock button { border: 0; background: transparent; color: #46464a; cursor: pointer; font: inherit; }
+  .mark-dock-main { display: inline-flex; align-items: center; gap: 6px; padding: 7px 11px; border: 1px solid #e2e1dc !important; border-radius: 999px; font-size: 12px !important; font-weight: 700 !important; letter-spacing: -.015em; white-space: nowrap; color: var(--ink); position: relative; background: #fff; }
+  .mark-dock-main:hover { border-color: #c8c7c2; background: #f7f7f5; }
+  .mark-dock-main.highlight::before { content: ""; display: inline-block; width: 11px; height: 11px; border-radius: 3px; background: #ffc928; }
+  .mark-dock-main.bold::before { content: "B"; display: inline-flex; align-items: center; justify-content: center; width: 13px; flex: 0 0 auto; font-size: 14px; font-weight: 800; color: var(--ink); line-height: 1; }
+  .mark-dock-main.custom::before { content: ""; display: inline-block; width: 11px; height: 11px; flex: 0 0 auto; background: #ff9500; clip-path: polygon(50% 0%, 61% 39%, 100% 50%, 61% 61%, 50% 100%, 39% 61%, 0% 50%, 39% 39%); }
+  .mark-dock-main .caretdown { width: 13px; height: 13px; color: #a09f9b; stroke-width: 2; }
+  .mark-dock-main.is-running {
+    border-color: #ffc400 !important; color: var(--ink);
+    background: #fff;
+    box-shadow: 0 0 15px rgba(255,170,0,.55);
+    animation: mark-glow-pulse 1.8s ease-in-out infinite;
+  }
+  @keyframes mark-glow-pulse {
+    0%, 100% { box-shadow: 0 0 12px rgba(255,170,0,.42); }
+    50% { box-shadow: 0 0 24px rgba(255,170,0,.9); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .mark-dock-main.is-running { animation: none; box-shadow: none; }
+  }
+  .tip { margin-top: 18px; font-size: 11px; color: var(--secondary); }
+</style>
+</head>
+<body>
+  <div class="stage">
+    <h1>Mark-dock 动态状态效果</h1>
+    <p>点击任一按钮模拟「生成中」，观察呼吸式渐变光晕。再次点击关闭。</p>
+    <nav class="mark-dock" aria-label="划线筛选">
+      <button class="mark-dock-main highlight" type="button" aria-expanded="false">高亮<svg class="caretdown" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>
+      <button class="mark-dock-main bold" type="button" aria-expanded="false">加粗<svg class="caretdown" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>
+      <button class="mark-dock-main custom" type="button" aria-expanded="false">智能分析<svg class="caretdown" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>
+      <button class="mark-dock-main lang" type="button" aria-expanded="false"><span>原文</span><svg class="caretdown" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>
+    </nav>
+    <p class="tip">点击按钮模拟「生成中」状态，观察呼吸式渐变光晕；再次点击关闭。真实扩展中该动画只在重新生成/分析进行时播放。</p>
+  </div>
+  <script>
+    const dock = document.querySelector('.mark-dock');
+    dock.addEventListener('click', (e) => {
+      const btn = e.target.closest('.mark-dock-main');
+      if (!btn) return;
+      const isRunning = btn.classList.contains('is-running');
+      dock.querySelectorAll('.mark-dock-main').forEach(b => b.classList.remove('is-running'));
+      if (!isRunning) btn.classList.add('is-running');
+    });
+  </script>
+</body>
+</html>

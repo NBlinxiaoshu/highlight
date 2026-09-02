@@ -2,7 +2,6 @@ var XYD_APP = (() => {
   "use strict";
 
   const SUPADATA_URL = "https://api.supadata.ai/v1/transcript";
-  const SUPADATA_YOUTUBE_TRANSCRIPT_URL = "https://api.supadata.ai/v1/youtube/transcript";
   const POLL_INTERVAL_MS = 5000;
   const MAX_POLLS = 360;
   const HISTORY_INDEX_KEY = "xyd_history_index";
@@ -14,101 +13,6 @@ var XYD_APP = (() => {
     description: "",
     duration: 11056,
     audioUrl: "",
-  });
-  const DEMO_GOLDEN_QUOTES = new Set([
-    "创业只是一个普通的职业选择，甚至就是一份工作而已",
-    "我不是说火的内容，有流量的内容我都推，而是在其他平台你可能讨论比较少见的，比较少的内容，我去做一些差异化",
-    "而UGC内容和KOC内容一直都是小红书的核心差异化的价值",
-    "你不懂社区会死，你只懂社区也会死",
-    "视频的核心指标从之前的播放次数改成了播放时长，不是只鼓励大家做标题党，提升打开率了",
-    "不做贴片不等于没有广告，它只是把原本一次体面又有价值的广告，变成了100次狼狈又不体面的广告",
-    "社区不是一群人在看一个东西而已，社区是你能看到成千上万的人跨越时间，跨越空间，跟你在这一时刻这个地方一起相聚",
-  ]);
-  const DEMO_EXTRA_CASES = [
-    [677, "赔偿 100 万元离开斯坦福创业"],
-    [1386, "四万名精准用户完成冷启动"],
-    [1566, "小红书上线福利社，正式尝试自营电商"],
-    [1675, "融资与估值把小红书推入独角兽行列"],
-    [2250, "投放《偶像练习生》带来女性用户增长"],
-    [3461, "小绿洲与福利社相继关闭"],
-    [4576, "A站资金链断裂后被快手收购"],
-    [5624, "FGO代理改变B站收入结构"],
-    [7042, "商业预算集中在头部UP主"],
-    [8073, "TapTap用用户规模建立行业影响力"],
-    [8892, "脉脉在融资后实现早期盈亏平衡"],
-  ];
-  const DEMO_KEY_FACTS = [
-    [677, "2013年7月，毛文超怒赔100万后下海创业"],
-    [1386, "累计四万多的粉丝"],
-    [1629, "16年3月又拿到了腾讯领投的1亿美元融资"],
-    [1675, "2018年拿到了阿里巴巴领投的3亿美元融资"],
-    [1675, "2018年小红书已经估值超过30亿美元"],
-    [2011, "半年花了1.5亿"],
-    [2668, "2020年8月，小红书推出了视频号，视频时长也直接延长到了最高15分钟"],
-    [3461, "2023年10月，只做了一年多的小绿洲直接关闭"],
-    [5624, "上线前30天就吸引了450万的玩家"],
-    [5679, "2015年B站的游戏收入只有1.31亿，2016年直接窜到5点二三亿"],
-    [5679, "2017年做到了24.68亿"],
-    [7042, "一个品牌有1亿全案营销预算，B站这个平台可能能分到1000万"],
-    [8073, "累计用户已超过2000万，日活超过100万"],
-    [8073, "已经有2万家游戏厂商和开发者入驻"],
-    [8892, "16年慢慢已经有2000万注册用户，200万的日活，B轮之后估值超过1亿"],
-  ];
-  const COMPANION_SHARED_CONTRACT = `你不是摘要机，而是坐在读者旁边、会划原文并写旁注的共读者。
-选择标准：只有与你的视角直接相关、能改变理解或支持判断的内容才划。证据可以是一句，也可以是相邻数段；只取最小充分原文，不因出现人名、年份、数字或术语就选择。
-写作标准：标题要像编辑写的短标题，具体、有记忆点；旁注必须包含你的判断及其依据，可以有性格和幽默，但幽默来自事实中的反差，不玩梗硬凑。不得复述、拔高、虚构动机或补写因果。
-一律跳过：节目开场、嘉宾名单、购买渠道、价格优惠、订阅引导、品牌口播、普通履历罗列、无结论的寒暄。`;
-  const COMPANIONS = {
-    gossip: { name: "正主吃瓜", role: "吃瓜视角", color: "#ff2d55", description: "八卦一手消息，带你一起吃瓜", prompt: `${COMPANION_SHARED_CONTRACT}
-你是一位嘴快但证据更快的人物故事编辑。只关注人物关系、利益变化、公开言行反差、冲突、站队、反转和改变命运的选择。人名出现不等于有瓜；没有关系变化或矛盾张力就不要划。传闻必须标明是传闻，不能替当事人脑补。
-正例——原文：“走可以，但得赔一百万。2013年7月，毛文超赔钱离开公司创业。”
-标题：创业第一步：先给自己赎个身
-旁注：别人从零开始，他先从负一百万爬回零。职业选择在这里不是鸡汤，是一张真金白银的单程票。
-反例——“本季一共八期，已经完成六期；嘉宾有甲、乙、丙。”这是排期与名单，没有人物关系或冲突，不选。` },
-    ai: { name: "沐神笔记", role: "AI 前沿视角", color: "#007aff", description: "聚焦 AI 前沿，看看这次又炼出了什么丹", prompt: `${COMPANION_SHARED_CONTRACT}
-你是一位做过 AI 研究和工程落地的科学家。关注模型、数据、训练、评测、Agent、推理、工程权衡、失败条件和能力边界；也可选择虽未提 AI、却能严谨解释数据飞轮、人机协作或智能产品机制的内容。只出现“算法、数据、智能”三个字不够，必须有机制、约束或可验证结论。
-正例——原文：“数据库是社区生产内容的机制，而搜索是调取这些数据的入口。”
-标题：没讲 AI，却把数据飞轮讲透了
-旁注：模型不是凭空长出能力的。持续生产真实经验的机制和可召回的数据，才是智能产品更难复制的地基。
-反例——“我们使用先进算法，效果很好。”没有任务、指标、方法或边界，属于营销空话，不选。` },
-    product: { name: "Zara 产品雷达", role: "产品视角", color: "#00c7be", description: "产品 sense 持续积累中", prompt: `${COMPANION_SHARED_CONTRACT}
-你是一位产品 sense 很强、习惯追问取舍的产品经理。寻找“用户问题—产品动作—约束—结果”的证据链，也关注增长实验、商业化取舍、指标定义、机制变化、失败与反常识决策。一个关键动作即使结果尚未知也可选，但必须说明它在解决什么问题；单纯上线日期或公司履历不选。
-正例——原文：“《偶像练习生》投放效果很好，后来又投了《创造101》。”
-标题：不是撞上爆款，是验证后连续下注
-旁注：第一次投放验证了人群匹配，随后复投把偶然变成渠道策略。值得学的是“试一次—看结果—加注”的动作链。
-正例——原文：“2014年12月，小红书上线福利社。”
-标题：社区刚起势，电商就提前进场
-旁注：这不是普通版本更新，而是平台很早就在验证“内容如何通向交易”。
-反例——“产品于2014年上线。”只有日期，没有问题、动作含义或结果，不选。` },
-    custom: { name: "你的自定义搭子", role: "自定义视角", color: "#af52de", description: "自己决定这次重点看什么", prompt: `${COMPANION_SHARED_CONTRACT}
-严格围绕读者指定的目标工作。先在心里把目标拆成3–6条可观察证据，例如人物、动作、机制、指标、风险和结果，再选择直接命中的原文；不要把关键词命中误当成相关性。旁注说明“这段为什么回答了读者的问题”。
-正例（目标：只看商业模式）——原文同时给出用户增长和商业化困境。
-标题：用户在增长，收入问题却还没被回答
-旁注：增长与收入没有同步出现，这个落差比单看用户数更能判断模式是否成立。
-反例——只因出现“收入”二字就选择一段广告报价，不选。` },
-  };
-  const DEMO_COMPANION_NOTES = Object.freeze({
-    gossip: [
-      { startSeconds: 677, title: "创业第一步：先给自己赎个身", detail: "别人创业从零开始，毛文超是负一百万开局。这个瓜的重点不是“热血”，而是他真拿现金给职业路径买了张单程票。", highlights: [{ startSeconds: 677, text: "走得还钱。对，你走可以，你得把钱还了得赔多少钱？100万。你看看。2013年7月，毛文超怒赔100万后下海创业。" }] },
-      { startSeconds: 861, title: "创业灵感出现两个版本，先别急着站队", detail: "一个版本说痛点来自毛文超父母出国购物，另一个版本说是瞿芳在田子坊提出。好故事往往越讲越顺，原文反而诚实地把冲突留下来了。", highlights: [{ startSeconds: 861, text: "2012年，毛文超的父母当时准备去美国旅行，想要采购搜一些东西。他上网去搜，美国在哪买东西，什么东西好啊，结果搜不明白，搜不到都没有。" }, { startSeconds: 909, text: "瞿芳表示女性出国旅游的时候，要花大量的时间研究去哪儿购物。所以出去旅行购物这个市场是非常值得做的。" }] },
-      { startSeconds: 2250, title: "综艺投放押中爆款，用户真的追着偶像来了", detail: "《偶像练习生》和《创造101》把小红书第一次推向大规模破圈。这里不是“明星很有用”这么简单，而是人群、内容和平台气质刚好对上了。", highlights: [{ startSeconds: 2250, text: "小红书在这几年投放了爱奇艺的综艺偶像练习生，结果效果非常好。" }, { startSeconds: 2250, text: "大量的女性粉丝开始注册小红书。后来小红书又投放了在一开始还没有那么火的创造101" }] },
-      { startSeconds: 2359, title: "赵露思一来，社区差点被网友改名", detail: "用户吐槽“叫小路书吧”，本质是在替平台守人设：大家接受明星，但不接受明星盖过普通人的生活经验。", highlights: [{ startSeconds: 2359, text: "小红书给非常多的用户，很可能是全量push了那个通知，说赵露思来小红书了" }, { startSeconds: 2359, text: "当时很多网友说别叫小红书了，叫小路书吧。" }] },
-      { startSeconds: 5132, title: "一句话把爱好者网站问成了商业公司", detail: "陈睿没有先谈融资和收入，而是先逼徐逸回答“你到底想做什么”。很多公司命运的分叉，最初就藏在这种看似随口的问题里。", highlights: [{ startSeconds: 5132, text: "你是想就做一个爱好者的社团，还是想正儿八经做一家互联网公司？" }] },
-    ],
-    product: [
-      { startSeconds: 1566, title: "社区刚起势，电商就提前进场", detail: "2014 年上线福利社是一次明确的商业化动作。值得划的不是“做了电商”，而是社区价值尚未完全建立时，平台已经开始回答怎么赚钱。", highlights: [{ startSeconds: 1566, text: "很早在2014年12月，小红书就上线了福利社。福利社是什么呢？就是他自己的电商产品。" }] },
-      { startSeconds: 2250, title: "增长不是抽象策略，是连续押中两档综艺", detail: "《偶像练习生》验证有效后继续投《创造101》，这是“找到有效渠道—复投—扩大人群”的完整动作链。", highlights: [{ startSeconds: 2250, text: "小红书在这几年投放了爱奇艺的综艺偶像练习生，结果效果非常好。" }, { startSeconds: 2250, text: "后来小红书又投放了在一开始还没有那么火的创造101，再加上后来的各种综艺的投放效果都很好。" }] },
-      { startSeconds: 2359, title: "真正的护城河不是明星，是普通人的经验", detail: "UGC/KOC 是小红书与中心化内容平台的分水岭。产品动作一旦伤害这个认知，即使短期有流量，也会触发用户反弹。", highlights: [{ startSeconds: 2359, text: "而UGC内容和KOC内容一直都是小红书的核心差异化的价值。" }] },
-      { startSeconds: 3461, title: "社区赢了，商业化却还在反复横跳", detail: "小绿洲和福利社相继关闭，说明用户增长不能自动推导出商业模型。这里应该整段看，因为动作、反复和结果共同构成了案例。", highlights: [{ startSeconds: 3461, text: "2023年10月，只做了一年多的小绿洲直接关闭，坚持了很多年的福利社其实是在这一年彻底关闭的。小红书这些年方向上你就能看到它的飘忽不定。" }, { startSeconds: 3461, text: "社区蒸蒸日上，各方面都很乐观。男性用户变多日活月活疯狂增长" }, { startSeconds: 3461, text: "但是商业化角度来说，你别说外界了，内部大家都有点迷糊，也不知道该怎么办。" }] },
-      { startSeconds: 3851, title: "社区生产数据库，搜索负责把价值取出来", detail: "这是非常完整的产品飞轮：低门槛分享沉淀真实经验，搜索承接具体意图，再用反馈鼓励下一次分享。", highlights: [{ startSeconds: 3851, text: "数据库是社区变成了生产这些内容的机制，而搜索是调取这些数据的入口。" }] },
-      { startSeconds: 9340, title: "时间戳评论不是装饰，是音频社区的最小连接器", detail: "它把孤独的线性收听变成了围绕同一秒发生的讨论。功能很小，却直接改变用户对“这里有没有人在一起”的感知。", highlights: [{ startSeconds: 9340, text: "时间戳评论它跟那个弹幕对于视频的意义是一样的，异曲同工了。它变成了在音频领域非常核心的一个功能，让大家能够基于某个时间点去做评论。" }] },
-    ],
-    ai: [
-      { startSeconds: 3851, title: "这段不是讲 AI，却把数据飞轮讲明白了", detail: "模型能力之外，真正稀缺的是持续产生真实经验的数据机制。社区负责生产，搜索负责召回——这比“接个大模型”更接近 AI 产品的地基。", highlights: [{ startSeconds: 3851, text: "数据库是社区变成了生产这些内容的机制，而搜索是调取这些数据的入口。" }] },
-      { startSeconds: 4023, title: "推荐系统干的不是搬家，是重做信息分发", detail: "“重新发明贴吧和论坛”这句话够狠：同样是兴趣社区，算法把用户从主动逛板块改成了被动获得匹配内容，产品形态因此重写。", highlights: [{ startSeconds: 4023, text: "小红书用推荐算法重新发明了贴吧和论坛。" }] },
-      { startSeconds: 7757, title: "算法把人留下，评论区才把人变成社区", detail: "推荐负责命中兴趣，热评负责制造共同语境。只优化点击率会得到内容流，加入人与人的反馈才可能长出社区。", highlights: [{ startSeconds: 7757, text: "因为他的推荐算法做的太好了。" }, { startSeconds: 7757, text: "内涵段子的评论区当时也非常热闹，甚至成为了整个内涵段子的重要组成部分。" }] },
-      { startSeconds: 9144, title: "订阅会刷完，推荐流不会：留存机制的残酷差别", detail: "这是 Feed 产品最朴素也最致命的机制差异。对 Agent 或 AI 信息产品同样成立：用户完成任务后，凭什么还会回来？", highlights: [{ startSeconds: 9144, text: "但工具它有一个问题，因为它是订阅逻辑，它跟今日头条它不一样，它是可以刷完了就推荐算法。" }, { startSeconds: 9144, text: "今日头条、抖音无限流妈的费的流可以无限刷。但订阅是你关心的东西，你可能就关心这几件事儿，你刷完了也就给他关了怎么办？" }] },
-    ],
   });
 
   let activeTabId = 0;
@@ -126,14 +30,19 @@ var XYD_APP = (() => {
   let showIntro = false;
   let activeChapterIndex = -1;
   let activeRailIndex = -1;
-  let selectedCompanion = "";
-  let selectedCompanionColor = COMPANIONS.custom.color;
-  let companionNotesState = [];
+  let selectedCompanionColor = "#af52de";
   let transcriptLang = "source";
   let transcriptTranslating = false;
 
   function transcriptTargetLabel(lang) {
     return { "zh-CN": "中文", en: "英文", "zh-en": "中英双语" }[lang] || "中文";
+  }
+
+  function transcriptSourceLanguage() {
+    const sample = transcriptSegments.slice(0, 80).map((segment) => segment.text).join("");
+    const cjk = (sample.match(/[\u3400-\u9fff]/g) || []).length;
+    const latin = (sample.match(/[A-Za-z]/g) || []).length;
+    return cjk >= latin ? "zh-CN" : "en";
   }
 
   async function translateTranscript(lang) {
@@ -145,25 +54,48 @@ var XYD_APP = (() => {
     if (transcriptTranslating) return;
     const contentStart = detectedContentStart();
     const body = transcriptSegments.filter((segment) => segment.startSeconds >= contentStart);
-    const uncached = body.filter((segment) => segment.translatedLang !== lang);
+    const targetLang = lang === "zh-en" ? (transcriptSourceLanguage() === "zh-CN" ? "en" : "zh-CN") : lang;
+    const cacheLang = `${lang}:${targetLang}`;
+    if (lang !== "zh-en" && targetLang === transcriptSourceLanguage()) {
+      for (const segment of body) {
+        segment.translatedText = segment.text;
+        segment.translatedLang = cacheLang;
+      }
+      await persistTranscriptHighlights();
+      renderTranscript();
+      return showToast(`原文已经是${transcriptTargetLabel(lang)}`);
+    }
+    const uncached = body.filter((segment) => segment.translatedLang !== cacheLang || !segment.translatedText);
     if (!uncached.length) { renderTranscript(); return; }
     transcriptTranslating = true;
     byId("readingDock").classList.add("translating");
     try {
-      for (let i = 0; i < uncached.length; i += 1) {
-        const segment = uncached[i];
-        const target = lang === "zh-en" ? "中英双语（先给原文，再给对照译文）" : transcriptTargetLabel(lang);
+      const batches = XYD_PIPELINE.planSegmentBatches(uncached, { maxSegments: 8, maxChars: 2000 });
+      let failed = 0;
+      for (let i = 0; i < batches.length; i += 1) {
+        const batch = batches[i];
         try {
-          const res = await callDeepSeek(`你是翻译编辑。把下面这段播客原文翻译成${target}。只返回 JSON：{"translation":"译文"}。不要解释；保留人名、公司名、产品名、数字与专有名词。`, segment.text, 3000);
-          segment.translatedText = text(res?.translation, 4000);
-          segment.translatedLang = lang;
-        } catch (_e) { /* 单段失败跳过，保留原文 */ }
+          const res = await callDeepSeek(
+            `你是忠实的字幕翻译编辑。把每条 text 翻译成${targetLang === "en" ? "英文" : "简体中文"}。保留人名、公司名、产品名、数字、语气和信息量；不概括、不合并、不拆分。id 必须原样返回。只返回 JSON：{"segments":[{"id":"s0","text":"译文"}]}。`,
+            JSON.stringify({ segments: batch.map(({ id, text: value }) => ({ id, text: value })) }),
+            5200,
+          );
+          const aligned = XYD_PIPELINE.alignRewrittenSegments(res, batch, { mode: "translate", targetLanguage: targetLang });
+          for (const [batchIndex, value] of aligned) {
+            const segment = uncached[batchIndex];
+            if (!segment) continue;
+            segment.translatedText = text(value, 50000);
+            segment.translatedLang = cacheLang;
+          }
+          failed += batch.length - aligned.size;
+        } catch (_e) { failed += batch.length; }
       }
+      await persistTranscriptHighlights();
+      showToast(failed ? `翻译完成，${failed} 段未能翻译、已保留原文` : `已翻译原文（${transcriptTargetLabel(lang)}）`);
     } finally {
       transcriptTranslating = false;
       byId("readingDock").classList.remove("translating");
       renderTranscript();
-      showToast(`已翻译原文（${transcriptTargetLabel(lang)}）`);
     }
   }
 
@@ -180,6 +112,8 @@ var XYD_APP = (() => {
   let cloudAuth = null;
   let userProfile = { nickname: "小澍", avatarDataUrl: "" };
   let isTranscribing = false;
+  let isGenerating = false;
+  let activeProgress = null; // 当前在哪个面板内显示进度（summary/timeline），以及其 fill/track 引用
   let historyEntries = [];
   let historySourceFilter = "all";
   let historyFavoriteOnly = false;
@@ -306,7 +240,7 @@ var XYD_APP = (() => {
     return groups;
   }
 
-  function groupTranscriptForAnnotations(segments, maxChars = 14000) {
+  function groupTranscriptForAnnotations(segments, maxChars = 8000) {
     const groups = [];
     let current = "";
     segments.forEach((segment, segmentIndex) => {
@@ -326,23 +260,67 @@ var XYD_APP = (() => {
     const original = String(source || "");
     const needle = String(phrase || "").trim();
     if (!needle) return null;
+    // 1) 逐字精确匹配。
     const exact = original.indexOf(needle);
     if (exact >= 0) return { start: exact, end: exact + needle.length };
-    const compact = (value, withMap = false) => {
-      let valueOut = "";
+
+    // 归一化：去空白 + 去中英文标点。返回原文映射，便于把命中位置还原到原始下标。
+    const norm = (value, withMap = false) => {
+      let out = "";
       const map = [];
       [...value].forEach((char, index) => {
         if (/\s/.test(char)) return;
-        valueOut += char;
+        if (/[，。！？、；：“”‘’（）《》【】,.!?;:"'()\[\]{}…—]/.test(char)) return;
+        out += char;
         if (withMap) map.push(index);
       });
-      return { value: valueOut, map };
+      return { value: out, map };
     };
-    const haystack = compact(original, true);
-    const compactNeedle = compact(needle).value;
-    const start = haystack.value.indexOf(compactNeedle);
-    if (start < 0 || !compactNeedle) return null;
-    return { start: haystack.map[start], end: haystack.map[start + compactNeedle.length - 1] + 1 };
+    const hay = norm(original, true);
+    const need = norm(needle).value;
+    if (need) {
+      const hit = hay.value.indexOf(need);
+      if (hit >= 0) {
+        return { start: hay.map[hit], end: hay.map[hit + need.length - 1] + 1 };
+      }
+    }
+
+    // 2) 最长公共子串（LCS）降级：模型可能改了字序/多删了几个字。
+    //    只在公共子串足够长（覆盖模型短语大部分）时才回落，避免把标注截成 4–6 字碎片。
+    const a = hay.value;
+    const b = need;
+    if (b.length >= 10) {
+      const found = longestCommonSubstring(a, b);
+      if (found && found.length >= Math.max(10, Math.floor(b.length * 0.6))) {
+        const start = a.indexOf(found);
+        if (start >= 0) {
+          return { start: hay.map[start], end: hay.map[start + found.length - 1] + 1 };
+        }
+      }
+    }
+    return null;
+  }
+
+  // 最长公共子串（连续匹配串本身），用朴素 DP 保证正确。
+  function longestCommonSubstring(a, b) {
+    let bestLen = 0;
+    let bestEnd = 0; // best 在 a 中的结束下标（不含）
+    const n = a.length;
+    const m = b.length;
+    const dp = new Array(n + 1);
+    for (let i = 0; i <= n; i += 1) dp[i] = new Array(m + 1).fill(0);
+    for (let i = 1; i <= n; i += 1) {
+      for (let j = 1; j <= m; j += 1) {
+        if (a[i - 1] === b[j - 1]) {
+          dp[i][j] = dp[i - 1][j - 1] + 1;
+          if (dp[i][j] > bestLen) {
+            bestLen = dp[i][j];
+            bestEnd = i;
+          }
+        }
+      }
+    }
+    return bestLen >= 4 ? a.slice(bestEnd - bestLen, bestEnd) : "";
   }
 
   function maxAutoSkipSeconds(duration = 0) {
@@ -381,7 +359,7 @@ var XYD_APP = (() => {
       quickRead: text(raw?.quickRead, 8000),
       overview: {
         opening: text(raw?.overview?.opening || raw?.opening, 600),
-        sections: sections.slice(0, 6).map((item) => ({
+        sections: sections.slice(0, 8).map((item) => ({
           heading: text(item?.heading, 120),
           points: array(item?.points, 8).map((point) => text(point, 400)).filter(Boolean),
         })).filter((item) => item.heading),
@@ -411,35 +389,121 @@ var XYD_APP = (() => {
     return body;
   }
 
-  async function requestSupadataTranscript(audioUrl, onProgress = () => {}) {
-    const query = new URLSearchParams({ url: audioUrl, mode: "generate", text: "false", chunkSize: "500" });
+  async function requestSupadataTranscript(sourceUrl, onProgress = () => {}) {
+    // mode=native 只取平台已有字幕，不允许 Supadata 回退到可能计费的 AI 转写。
+    const query = new URLSearchParams({ url: sourceUrl, mode: "native", text: "false", chunkSize: "500" });
     const response = await fetch(`${SUPADATA_URL}?${query}`, { headers: { "x-api-key": settings.supadataApiKey } });
     const body = await readJson(response, "Supadata");
     if (response.status !== 202 && (Array.isArray(body?.content) || typeof body?.content === "string")) return normalizeTranscript(body);
     const jobId = body?.jobId || body?.job_id || body?.id;
     if (!jobId) throw new Error("Supadata 没有返回逐字稿或任务 ID。");
     for (let attempt = 1; attempt <= MAX_POLLS; attempt += 1) {
-      onProgress(`音频较长，正在等待转写完成（已等待约 ${Math.floor(attempt * POLL_INTERVAL_MS / 60000)} 分钟）`);
+      onProgress(`正在等待字幕（已等待约 ${Math.floor(attempt * POLL_INTERVAL_MS / 60000)} 分钟）`);
       await sleep(POLL_INTERVAL_MS);
       const pollResponse = await fetch(`${SUPADATA_URL}/${encodeURIComponent(jobId)}`, { headers: { "x-api-key": settings.supadataApiKey } });
       const poll = await readJson(pollResponse, "Supadata");
       if (Array.isArray(poll?.content) || typeof poll?.content === "string") return normalizeTranscript(poll);
       if (["failed", "error", "cancelled"].includes(String(poll?.status || "").toLowerCase())) throw new Error(`转写失败：${poll?.error || poll?.message || "未知原因"}`);
     }
-    throw new Error("转写等待超过 30 分钟，请稍后重试。Supadata 可能仍在后台处理。 ");
+    throw new Error("字幕读取等待超过 30 分钟，请稍后重试。");
   }
 
-  // YouTube 不转写音频，直接从官方字幕取稿（Supadata 已封装 pot/时间轴细节）。
-  // 返回结构与播客转写一致（content[].offset/duration 为毫秒），复用 normalizeTranscript。
+  // YouTube 只走 Supadata native 模式读取已有字幕，不触发 AI 转写。
   async function requestYoutubeTranscript(videoId, onProgress = () => {}) {
     onProgress("正在读取视频字幕…");
-    const query = new URLSearchParams({ videoId });
-    const response = await fetch(`${SUPADATA_YOUTUBE_TRANSCRIPT_URL}?${query}`, { headers: { "x-api-key": settings.supadataApiKey } });
-    const body = await readJson(response, "Supadata");
-    const content = Array.isArray(body?.content) ? body.content : Array.isArray(body?.transcript) ? body.transcript : null;
-    if (content && content.length) return normalizeTranscript({ content });
-    if (typeof body?.text === "string" && body.text.trim()) return normalizeTranscript({ content: [{ text: body.text, offset: 0, duration: 0 }] });
-    throw new Error(body?.error || body?.message || "Supadata 没有返回该视频的字幕。");
+    return requestSupadataTranscript(`https://www.youtube.com/watch?v=${encodeURIComponent(videoId)}`, onProgress);
+  }
+
+  // B 站优先走免费官方字幕；没有字幕的老课程可明确回退到百炼 ASR。
+  async function requestBilibiliTranscript(onProgress = () => {}, force = false) {
+    onProgress("正在读取 B 站官方字幕…");
+    const response = await chrome.tabs.sendMessage(activeTabId, {
+      action: "getBilibiliTranscript",
+      bvid: episode?.bvid || episode?.id,
+      cid: episode?.cid,
+      aid: episode?.aid,
+    });
+    if (response?.error || !Array.isArray(response?.segments) || !response.segments.length) {
+      if (!settings?.dashscopeApiKey) {
+        throw new Error(`${response?.error || "该视频暂无官方字幕"}。可在设置中填写阿里云百炼 Key，再用课程音频生成原文。`);
+      }
+      onProgress("没有可用的官方字幕，正在读取课程音频…");
+      const media = await chrome.tabs.sendMessage(activeTabId, {
+        action: "getBilibiliAudioUrl",
+        bvid: episode?.bvid || String(episode?.id || "").split(":p")[0],
+        cid: episode?.cid,
+      });
+      if (media?.error || !media?.audioUrl) throw new Error(media?.error || response?.error || "该视频暂无可用字幕或音频");
+      onProgress("官方字幕不可用，正在用百炼转写课程音频…");
+      return requestAliyunTranscript(media.audioUrl, onProgress, force);
+    }
+    const segments = XYD_PIPELINE.repairCaptionSegments(normalizeTranscript(response.segments));
+    return fixOriginalText(segments);
+  }
+
+  // B 站顺句按原字幕 id 分批处理并逐条对回，绝不重算时间戳。
+  async function fixOriginalText(segments) {
+    if (!Array.isArray(segments) || segments.length < 3) return segments;
+    if (!settings?.aiApiKey) {
+      // 不再静默跳过：明确告诉用户这一步为什么没做修复。
+      showToast("未配置 DeepSeek API Key，已跳过 B 站字幕的标点与错别字修复。");
+      return segments;
+    }
+    const output = segments.map((segment) => ({ ...segment, rawText: text(segment.rawText || segment.text, 50000) }));
+    const batches = XYD_PIPELINE.planSegmentBatches(segments, { maxSegments: 8, maxChars: 3000 });
+    let failedBatches = 0;
+    for (let i = 0; i < batches.length; i += 1) {
+      const batch = batches[i];
+      updateProgress(`正在整理原文 ${i + 1}/${batches.length}`, "修正断句与明显错字，让字幕更容易阅读。");
+      try {
+        const result = await callDeepSeek(
+          `你负责修复 B 站自动字幕。只做两件事：补标点；结合视频标题和相邻字幕修正能确定的同音错别字。严格禁止增加、删除、概括、翻译、润色、合并或拆分条目；口头禅和重复必须保留。每条输入都要按原 id 返回。只返回 JSON：{"segments":[{"id":"s0","text":"修复后的文字"}]}。视频标题：${episode?.title || ""}`,
+          JSON.stringify({ segments: batch.map(({ id, text: value }) => ({ id, text: value })) }),
+          4600,
+        );
+        const aligned = XYD_PIPELINE.alignRewrittenSegments(result, batch, { mode: "polish" });
+        for (const [segmentIndex, value] of aligned) output[segmentIndex].text = text(value, 50000);
+      } catch (_error) {
+        // 单批失败保留原字幕，但不静默：统计失败批数，最后统一提示用户。
+        failedBatches += 1;
+      }
+    }
+    if (failedBatches === batches.length) {
+      showToast("原文修复未完成：DeepSeek 调用失败（请检查 API Key 是否有效、余额是否充足），已保留原字幕。");
+    } else if (failedBatches > 0) {
+      showToast(`原文修复部分完成：${failedBatches}/${batches.length} 批调用失败，对应字幕已保留原文。`);
+    }
+    return output;
+  }
+
+  // 只加了标点/纠正错别字：去掉标点与空白后，字数与原文基本一致；显著偏离则说明模型改写了，不接受。
+  function looksLikePunctuationFix(polished, source) {
+    const scalar = (s) => String(s || "").replace(/[\s，。！？；：、,.!?;:（）()“”"'《》]/g, "");
+    const a = scalar(source).length;
+    const b = scalar(polished).length;
+    if (a === 0) return b === 0;
+    const ratio = b / a;
+    return ratio > 0.92 && ratio < 1.08;
+  }
+
+  // 把顺句后的文本按原时间范围近似切回 timestamp 分段（时间精度为估算）。
+  function resegmentText(text, original) {
+    const start = Number(original[0]?.startSeconds) || 0;
+    const last = original[original.length - 1] || {};
+    const end = Number(last.startSeconds) + Math.max(0, Number(last.durationSeconds) || 0) || start + Math.max(60, original.length * 4);
+    const total = text.length || 1;
+    const out = [];
+    let cursor = 0;
+    for (const para of String(text).split(/\n{2,}/)) {
+      for (const line of para.split("\n")) {
+        const piece = String(line).trim();
+        if (!piece) continue;
+        const ratio = total ? (cursor + piece.length / 2) / total : 0;
+        out.push({ startSeconds: Math.max(0, start + (end - start) * ratio), durationSeconds: 0, text: piece });
+        cursor += piece.length;
+      }
+    }
+    return out.length ? out : original;
   }
 
   async function cloudRequest(path, options = {}) {
@@ -512,14 +576,13 @@ var XYD_APP = (() => {
     byId("profileTranscriptPrompt").value = settings?.transcriptPrompt || "";
     byId("profileSummaryPrompt").value = settings?.summaryPrompt || "";
     byId("profileHighlightPrompt").value = settings?.highlightPrompt || "";
-    byId("profileCompanionPrompt").value = settings?.companionPrompt || "";
     if (document.getElementById("promptPreviewPassage")) byId("promptPreviewPassage").textContent = PROMPT_PREVIEW_PASSAGE;
     renderAllPromptAssemblies();
   }
 
   async function saveReadingPreferences() {
     const focusPreferences = Array.from(document.querySelectorAll('.focus-chips input[type="checkbox"]:checked')).map((input) => input.value);
-    settings = XYD_SETTINGS.normalize({ ...settings, summaryLength: byId("profileSummaryLength").value, writingStyle: byId("profileWritingStyle").value, focusPreferences, transcriptPrompt: byId("profileTranscriptPrompt").value, summaryPrompt: byId("profileSummaryPrompt").value, highlightPrompt: byId("profileHighlightPrompt").value, companionPrompt: byId("profileCompanionPrompt").value });
+    settings = XYD_SETTINGS.normalize({ ...settings, summaryLength: byId("profileSummaryLength").value, writingStyle: byId("profileWritingStyle").value, focusPreferences, transcriptPrompt: byId("profileTranscriptPrompt").value, summaryPrompt: byId("profileSummaryPrompt").value, highlightPrompt: byId("profileHighlightPrompt").value });
     await chrome.storage.local.set({ [XYD_SETTINGS.STORAGE_KEY]: settings });
     renderAllPromptAssemblies();
     byId("preferenceSaved").textContent = "已自动保存";
@@ -609,7 +672,6 @@ var XYD_APP = (() => {
         received = partial.length;
         await setTranscript(partial, true);
         onProgress(`已完成 ${job.completedChunks || 0}/${job.totalChunks || "…"} 段，后面的内容会继续补上。`);
-        switchView("transcript");
       }
       if (job?.status === "completed") {
         isTranscribing = false;
@@ -634,9 +696,11 @@ var XYD_APP = (() => {
     if (currentPlatformId() === "youtube") {
       return requestYoutubeTranscript(episode?.id, onProgress);
     }
-    return settings?.asrProvider === "supadata"
-      ? requestSupadataTranscript(audioUrl, onProgress)
-      : requestAliyunTranscript(audioUrl, onProgress, force);
+    if (currentPlatformId() === "bilibili") {
+      return requestBilibiliTranscript(onProgress, force);
+    }
+    // 小宇宙固定走百炼 ASR，不跟随全局 asrProvider。
+    return requestAliyunTranscript(audioUrl, onProgress, force);
   }
 
   async function seedBackendTranscriptCache() {
@@ -668,7 +732,7 @@ var XYD_APP = (() => {
   async function callDeepSeek(system, user, maxTokens = 5000) {
     async function request(repairAttempt = false) {
       const repairInstruction = repairAttempt
-        ? "\n\n【格式修复】上一次响应被截断或 JSON 损坏。内容要求保持不变，但必须把总输出压缩到上一次的 60% 以内：减少重复表述，数组只保留最重要的项目，字符串写短。只输出完整、合法、可解析的 JSON，不要 Markdown 代码块，不要任何 JSON 之外的文字。"
+        ? "\n\n【格式修复】上一次响应被截断或 JSON 损坏。请重新完整输出，内容与结构要求不变；只压缩明显重复和冗余的表述，必须保留所有小节标题、所有加粗/高亮标记与关键数据，不得为了篇幅而删掉真实内容。只输出完整、合法、可解析的 JSON，不要 Markdown 代码块，不要任何 JSON 之外的文字。"
         : "";
       const response = await fetch(XYD_SETTINGS.chatCompletionsUrl(), {
         method: "POST",
@@ -761,7 +825,7 @@ var XYD_APP = (() => {
     const corrected = segments.map((segment) => ({ ...segment, rawText: text(segment.rawText || segment.text, 50000) }));
     const batches = transcriptCorrectionBatches(corrected);
     for (let batchIndex = 0; batchIndex < batches.length; batchIndex += 1) {
-      updateProgress(`正在校对逐字稿 ${batchIndex + 1}/${batches.length}`, "修正专名、同音错字和明显断句错误，时间戳保持不变。");
+      updateProgress(`正在校对原文 ${batchIndex + 1}/${batches.length}`, "修正专名与同音错字，让文字更准确。");
       try {
         const result = await callDeepSeek(
           `你是中文播客逐字稿校对编辑。只返回 JSON：{"items":[{"i":0,"text":"校对后的原话"}]}。
@@ -854,9 +918,9 @@ var XYD_APP = (() => {
 
   async function refineTranscriptWithAgents(segments) {
     let named = segments;
-    updateProgress("正在确认发言人", "结合节目简介、开场自我介绍和彼此称呼匹配姓名。");
+    updateProgress("正在确认发言人", "根据节目简介与开场介绍，匹配各位发言人姓名。");
     try { named = await identifySpeakerNames(segments); } catch (_error) {}
-    updateProgress("正在整理正式文稿", "按说话人切换、语义完整性和停顿重新分段。");
+    updateProgress("正在整理原文", "按说话人与停顿，把逐字稿整理成连贯段落。");
     return formalParagraphizeTranscript(named);
   }
 
@@ -876,6 +940,11 @@ quickRead 必须使用真正的 Markdown 层级，不写大段连续正文：
 chapters 按真实话题变化划分并覆盖整期正式内容：40分钟以内通常 5–8 章，40–120分钟通常 8–12 章，更长节目最多 16 章。每章 summary 120–240 字，提供 2–4 条 points，每条不超过 120 字，用来补充事件、动作、论据、结果或分歧，不能重复 summary。标题直接描述内容，不使用“第1章”“第一章”等编号。整个 JSON 必须一次完整闭合；宁可压缩措辞，也不允许在数组中途截断。${DIGEST_SCHEMA}`;
   const CHAPTER_EDITOR_SYSTEM = `你是播客章节提炼编辑。看一段带时间戳的逐字稿，按话题整理成 1-3 个章节。
 只返回 JSON：{"chapters":[{"startSeconds":0,"title":"","detail":"","points":[""]}]}
+
+【章节粒度很重要】
+- 一章必须覆盖一个完整的大话题，通常是 3–8 分钟以上的连续内容；不要把同一话题里的停顿、举例、来回问答拆成多个章节。
+- 只在这一段里确实出现了明显话题切换时才开新章；同一个被反复谈的话题即使中途被打断，也只作为一章。
+- 章节的 startSeconds 之间至少要隔开一段明显的时间，别出现几秒就一个章节的情况。
 
 这是写好的样子，照着这个形态来（小标题一句话点题，正文一整段连贯叙述，不写"某某说"）：
 
@@ -898,14 +967,14 @@ chapters 按真实话题变化划分并覆盖整期正式内容：40分钟以内
 写标题：一句话点题，像上面的示例那样，**标题里不要出现冒号"："**，也不要写"第1章"、不写"某某说"。如果标题想表达"主题+说明"，直接合成一句通顺的话，不要用冒号隔开。.
 写正文：如果这一节讲了**两个或更多并列的信息**（几个观点、几种原因、几类事实、几点建议），就**必须**用圆点分行，每条圆点一行（- 开头）；只讲一件事的来龙去脉才写成一整段。判断标准：能不能拆成"第一点…第二点…第三点"？能，就分圆点；不能，就一整段。
 写要点 points：给这一节 2–4 条展开后要详述的要点，每条 40–90 字（2–3 句），比 detail 更深入、更具体（事实、数据、方法、结果、分歧），不重复 detail 的引言式概括，不写"某某说"，不罗列过程。
-注意：正文里的引用或书名一律用中文引号「」或《》，**不要用英文双引号**（会破坏 JSON）。`;  const OVERVIEW_EDITOR_SYSTEM = `你是中文播客的速读编辑。根据章节材料写「速读总览」，让读者 30 秒内 get 这期核心。风格像小红书「点点」的笔记。
+注意：正文里的引用或书名一律用中文引号「」或《》，**不要用英文双引号**（会破坏 JSON）。`;  const OVERVIEW_EDITOR_SYSTEM = `你是中文播客的速读编辑。根据章节材料写可直接阅读的「速读总览」。风格自然、具体、有层次。
 只返回 JSON：{"opening":"","sections":[{"heading":"","points":["",""]}]}
 
-【opening】1 句话总起：点明是谁、聊了什么、核心结论。不超过 60 字。
-【sections】3 个小节，每节：
+【opening】1 句话总起：点明是谁、聊了什么、核心结论。不超过 60 字。**用 == 把最核心的那句结论括住**，这句会被黄色高亮、跟着字走（不是整段刷黄）；不要用 == 包住整个 opening。
+【sections】小节数、每节要点数和总篇幅严格服从用户提示中的阅读时长档位：档位要 5–7 节就稳定输出 5–7 节，档位要 2–3 节就只写 2–3 节；不要因为下面的示例只有 3 节就固定写 3 节。每节：
 - heading：一句话点题的标题（不加冒号，不用栏目名）
-- points：2-4 条要点，每条一句话；第 1 条给判断/结论，后面的给论据、数据、例子。不要写"某某说"。
-【示例】
+- points：先给判断/结论，再给论据、数据、例子。每条 1–3 句，不能用压缩句敷衍长摘要。每条用 **不超过12字的线索词：** 开头；当读者偏好要求突出证据时，再用 ==关键原话或数据== 标出每节最多 1 处最有信息量的证据。不要写"某某说"。
+【示例】（只示意形态，小节数以档位为准，可多可少）
 opening: 这期杨雨坤（奥地利脑科学博士）用亲身经历和脑科学视角聊育儿。**核心是：爱是陪出来的，不是天生的；大脑终身可塑。**
 sections:
 - heading: 为父则刚，是卸下性别枷锁
@@ -916,7 +985,7 @@ sections:
   points: [孩子前额叶未成熟，杏仁核主导情绪风暴，帮情绪命名能加强前额叶觉察、消解痛苦, 恐惧压制只会强化杏仁核；温柔坚定是定好规矩、允许崩溃、陪伴缓和, 规则稳定比溺爱更有安全感]
 
 【规则】
-- 必须输出完整 1 个 opening + 3 个 sections，只给 opening 不算完成。
+- 必须输出完整 opening + sections，只给 opening 不算完成；具体小节数按阅读时长档位。
 - 多举具体的人、年龄、数字、经历；忠于材料，不补充外部事实。
 - 只给结论、转折、能改变理解的事实，不罗列过程。
 - 不用英文双引号（会破坏 JSON），引用用中文「」或《》。
@@ -926,7 +995,7 @@ sections:
 - 不用——破折号，不用""包裹比喻，不用"这件事"指代。
 - 直接陈述，像人说话，不用总结陈词。`;
   const ANNOTATION_EDITOR_SYSTEM = `你是严谨的中文播客精读编辑。你的任务不是把“看起来重要”的词加粗，而是帮助读者找到真正能改变理解的原文。
-只返回 JSON：{"notes":[{"segmentIndex":0,"startSeconds":0,"endSeconds":0,"type":"skip|quote|case|fact|method|idea|chapter","title":"","detail":"","highlightText":"","importance":1}]}。
+只返回 JSON：{"notes":[{"segmentIndex":0,"startSeconds":0,"endSeconds":0,"type":"skip|quote|case|fact|method","title":"","detail":"","highlightText":"","importance":1}]}。
 
 【先识别不该读的内容】
 - skip 只用于节目开头连续出现的片头音乐、固定寒暄或明确品牌广告，并且必须有“接下来进入本期议题”一类清楚切换证据。不确定就不要输出 skip。
@@ -936,37 +1005,47 @@ sections:
 
 【金句 quote】
 - 必须是说话者明确提出的判断、定义、因果关系、取舍或有解释力的主张；脱离上下文仍基本成立。
-- 优先选择“不是A而是B”“因为X所以Y”“真正决定X的是Y”等完整观点。每组2–4条，宁缺毋滥。
+- 优先选择“不是A而是B”“因为X所以Y”“真正决定X的是Y”等完整观点，以及用比喻/俚语点破本质的句子（这种往往最有记忆点）。
 - 不选：口号、情绪感叹、普通设问、过渡句、未解释的态度、节目自夸和不完整句。
-- 正例：“UGC内容和KOC内容一直都是小红书的核心差异化价值。”
+- 正例：“本来以为是坐火箭，结果坐的是窜天猴啊，窜窜一下就没了我”“单纯做内容社区只能靠贴广告赚钱，跟产业强关联商业模式才更稳”“社区还是咱小红书的核心”。
 - 反例：“我们决定认真做它，做好它。”只有态度，没有可学习的判断。
 
 【案例 case】
 - 是一个可复述的事件或动作链，至少包含“主体+动作”，最好还有背景、约束、结果或后续；可以是一句，也可以是连续数段。
 - 必选候选：产品上线/关闭、投放、融资、收购、转型、改版、指标口径变化、失败实验、战略选择及其结果。
-- 标题必须说清具体事件，不写“一个案例”“关键动作”。每组4–8条，但不得为凑数选择静态资料。
-- 正例：“2014年12月，小红书上线福利社”是关键商业化动作；“投放《偶像练习生》有效，随后继续投《创造101》”是完整增长动作链。
+- 播客里几乎每讲一个公司/产品/人物，就会有一连串“做了什么—结果如何”的事件链，这些都算 case，不要因为像普通叙述就漏掉。一条完整事件链即使跨几段，也要标成 case。
+- 标题必须说清具体事件，不写“一个案例”“关键动作”。每条是完整事件链；同一主题跨多段时拆成相邻多个 case。
+- 正例：“2014年12月，小红书上线福利社”是关键商业化动作；“投放《偶像练习生》有效，随后继续投《创造101》”是完整增长动作链；“从天使轮到30亿估值的连续融资”是一条融资历程 case。
 - 反例：嘉宾名单、个人履历、产品名罗列、只有年份而没有动作含义的句子。
 
 【关键事实 fact】
 - 数字只有在说明规模、变化、代价、效率、结果或前后比较，并能改变读者理解时才有价值。
-- 正例：“2018年融资3亿美元，估值超过30亿美元”；它说明融资规模和阶段。
-- 反例：“第一季共八期，目前完成六期”“每集19.9元，打包99.9元”；前者是排期，后者是广告价格，都不标。
+- 必对标：年份、用户数/注册数/日活月活、GMV、收入/成本、估值/融资额、市场份额、增长率、增幅、排名、价格、成本、周期。只要它说明一件事的规模或变化，就选。
+- 正例：“2013年10月…拿了真格基金的几百万人民币的天使轮”“2018年小红书已经估值超过30亿美元”“2016年跨境电商市场份额6.5%，两年后跌到4.3%”“上线一年GMV突破3亿”“采购助理半年采购1.5亿商品”。这些都是说明规模/转折的事实。
+- 不标：只有数字、没说明规模和变化的句子，如“第一季共八期，目前完成六期”“每集19.9元，打包99.9元”（排期、广告价）。
 - 机制或竞争优势可作为 fact，但必须是清晰事实判断，不能只是宣传词。
 
 【方法论 method】
 - 是说话人明确给出的可复用方法、判断标准、做事路径或经验总结，能脱离本集场景迁移使用。
-- 正例：“先小范围试一次—看结果—再加注”是连续下注的渠道策略；“社区负责生产内容、搜索负责召回”是数据飞轮的方法。
+- 播客里常见的 method：怎么选品、怎么投放、怎么定价、怎么做内容、怎么搭建团队/流程、怎么判断一件事能不能做、衡量成败的指标。只要说话人在讲“该怎么做/为什么这么做”，就是 method。
+- 正例：“先小范围试一次—看结果—再加注”是连续下注的渠道策略；“社区负责生产内容、搜索负责召回”是数据飞轮的方法；“每个商品用八个字讲明白卖点”是电商选品的方法。
 - 反例：只陈述“我们做了X”而没有方法含义，或单纯的数据结果。
 
-【原文与密度】
-- 正文总体目标约25%，这是上限方向而非硬性配额；低价值内容宁可不标。
-- highlightText 必须逐字复制4–400字连续原文，不改字、不拼接；case 可覆盖完整段落，quote 只覆盖观点本身。
+【决定标多少】
+- 你的目标是把这段话里所有有证据价值的内容都标出来，而不是"挑几个重点"。只要一段话里出现了下面任一种，就必须标：
+  - 明确判断/观点/结论（quote）
+  - 年份、用户数、GMV、估值、融资额、市场份额、增长率、排名、价格、成本、周期等数字（fact）
+  - 完整事件/动作链：上线、投放、融资、收购、转型、关闭、改版、失败（case）
+  - 该怎么做/为什么这么做/判断标准等可复用方法（method）
+- 一段信息密度高的访谈里，能标的内容通常有 6–12 条甚至更多；商业/人物/产业访谈里，case 和 method 尤其常见，请重点标，不要只标 quote 和 fact。宁可多标有证据价值的句子，也不要整段空着。
+- 唯一不要选的是：无信息量的寒暄、过渡、口号、广告、排期、嘉宾名单。
+- 每个类型大致占全部标注的参考比例：quote 约 1/4，case 约 1/4，fact 约 1/3，method 约 1/6。这比例只用来提醒你四类都要有，不要只标某一类；具体以内容为准，不要为凑数硬造。
+- highlightText 必须逐字复制4–300字连续原文，不改字、不拼接；case 可覆盖整段动作链（别超过 200 字），quote 只覆盖观点本身。
 - 每段开头都有 S 编号。segmentIndex 必须原样返回对应的 S 编号；不允许跨多个 S 段拼接 highlightText。case 需要跨段时拆成多个相邻 case，每段使用自己的 segmentIndex 和同一标题。
 - importance 5代表会改变对整期主题的理解，3代表有明确证据价值，1–2不要输出。保留事实，不扩写。`;
 
   function readingPreferenceInstruction() {
-    const length = { short: "摘要从紧，优先保留最重要的内容", medium: "摘要保持中等篇幅和完整脉络", long: "摘要更详细，保留更多论据与上下文" }[settings?.summaryLength] || "摘要保持中等篇幅和完整脉络";
+    const length = XYD_PIPELINE.summaryLengthInstruction(settings?.summaryLength || "medium");
     const style = { concise: "表达简洁专业", conversational: "表达自然易读，像有判断力的朋友做笔记", academic: "表达严谨，明确区分事实、观点与推断" }[settings?.writingStyle] || "表达简洁专业";
     const focusMap = { viewpoint: "观点洞察", method: "可执行方法", case: "案例分析", fact: "数据事实", funny: "有趣表达", controversy: "争议观点" };
     const focus = (settings?.focusPreferences || []).map((key) => focusMap[key]).filter(Boolean);
@@ -996,9 +1075,8 @@ sections:
     transcript: { label: "说话人识别", overrideKey: "transcriptPrompt", baseSystem() { return SPEAKER_ID_SYSTEM; }, buildUser() { return `播客：${PROMPT_PREVIEW_EPISODE.podcast}\n单集：${PROMPT_PREVIEW_EPISODE.title}\n节目简介：\n${PROMPT_PREVIEW_EPISODE.description}\n\n从整期不同位置抽取的说话人样本：\n说话人 0\n[22:03] ${PROMPT_PREVIEW_PASSAGE}`; } },
     summary: { label: "摘要提炼", overrideKey: "summaryPrompt", baseSystem() { return EDITOR_SYSTEM; }, buildUser() { return `节目：${PROMPT_PREVIEW_EPISODE.title}\n时长：1:00:00\n${readingPreferenceInstruction()}\n\n节目简介/时间轴：\n${PROMPT_PREVIEW_EPISODE.description}\n\n根据文案做审慎摘要。信息不足时明确说明；不要假装听过音频。`; } },
     highlight: { label: "重点标注", overrideKey: "highlightPrompt", baseSystem() { return ANNOTATION_EDITOR_SYSTEM; }, buildUser() { return `节目：${PROMPT_PREVIEW_EPISODE.title}\n${readingPreferenceInstruction()}\n这是逐字稿的第 1/1 段：\n${PROMPT_PREVIEW_PASSAGE}`; } },
-    companion: { label: "共读搭子", overrideKey: "companionPrompt", baseSystem() { return `你是播客共读编辑。${COMPANIONS.product.prompt}\n\n执行规则：\n1. 先通读后按“与角色相关度、信息增量、证据完整度、可复用性”各1–5分在心里排序，只输出总分至少15分的5–12条；不足5条就如实少选。\n2. 笔记要分布在整期正文，但不能为了分布或数量选择广告、名单和空话。\n3. 每条可精确划一句，也可划2–3处相邻或分开的原文。只选支撑旁注的最小充分证据：观点划一句，事件可划完整动作链。\n4. highlights.text 必须是逐字稿中8–400字的连续原文，一字不改；startSeconds 填该原文附近时间。\n5. title 具体、有角色口吻；detail 用2–4句完成“判断—证据—为什么重要”，禁用‘值得关注、很有启发、体现了、揭示了’等空话。\n6. 不得发明人物、数字、因果和立场；广告价格、节目期数、嘉宾名单即使有数字也不得入选。\n只返回 JSON：{"notes":[{"title":"","detail":"","highlights":[{"startSeconds":0,"text":""}]}]}。`; }, buildUser() { return `节目：${PROMPT_PREVIEW_EPISODE.title}\n\n逐字稿：\n[22:03] ${PROMPT_PREVIEW_PASSAGE}`; } },
   };
-  const PROMPT_STAGE_TO_ASSEMBLED = { transcript: "profTranscriptAssembled", summary: "profSummaryAssembled", highlight: "profHighlightAssembled", companion: "profCompanionAssembled" };
+  const PROMPT_STAGE_TO_ASSEMBLED = { transcript: "profTranscriptAssembled", summary: "profSummaryAssembled", highlight: "profHighlightAssembled" };
 
   // 拼接单个环节的最终系统提示词：内置系统 + 用户追加偏好（与 callDeepSeek 完全一致）。
   function assembledSystemPrompt(stageKey) {
@@ -1029,7 +1107,7 @@ sections:
   }
 
   async function quickDigest() {
-    updateProgress("正在阅读节目文案", "快速模式不会转写音频。");
+    updateProgress("正在阅读节目文案", "仅读取简介与时间轴，不转写音频。");
     return callDeepSeek(`${EDITOR_SYSTEM}${configurablePrompt("summaryPrompt")}`, `节目：${episode.title}\n时长：${formatTime(episode.duration)}\n${readingPreferenceInstruction()}\n\n节目简介/时间轴：\n${episode.description || "（没有节目文案）"}\n\n根据文案做审慎摘要。信息不足时明确说明；不要假装听过音频。`);
   }
 
@@ -1037,84 +1115,117 @@ sections:
     const silent = Boolean(options?.silent);
     const scopedTypes = Array.isArray(options?.types) && options.types.length ? options.types : null;
     const segments = transcriptSegments;
-    if (!segments.length) throw new Error("没有可重新整理的逐字稿。");
+    if (!segments.length) throw new Error("没有可重新整理的原文。");
     const groups = groupTranscriptForAnnotations(segments);
     const notes = [];
+    let successfulGroups = 0;
     const scopeLabel = { quote: "核心观点/金句", method: "方法论", case: "案例分析/重要事件", fact: "关键数据/事实" };
     const scopeText = scopedTypes ? `\n【本次只输出这些类型】${scopedTypes.map((t) => scopeLabel[t] || t).join("、")}；不要输出其他类型。` : "";
     for (let index = 0; index < groups.length; index += 1) {
-      if (!silent) updateProgress(`正在识别重点 ${index + 1}/${groups.length}`, "标记金句、案例和关键事实，为原文加标注。");
+      if (!silent) updateProgress(`正在标注重点 ${index + 1}/${groups.length}`, "为原文标记金句、案例和关键事实。");
       try {
         const result = await callDeepSeek(
           `${ANNOTATION_EDITOR_SYSTEM}${configurablePrompt("highlightPrompt")}${scopeText}`,
           `节目：${episode.title}\n${readingPreferenceInstruction()}\n这是逐字稿的第 ${index + 1}/${groups.length} 段：\n${groups[index]}`,
-          3500,
+          6000,
         );
-        notes.push(...(Array.isArray(result?.notes) ? result.notes.slice(0, 40) : []));
+        notes.push(...(Array.isArray(result?.notes) ? result.notes.slice(0, 60) : []));
+        successfulGroups += 1;
       } catch (_error) {
         // 某一小段失败不应阻断整期；其余段落仍可生成重点。
       }
     }
+    if (!successfulGroups) throw new Error("重点标注生成失败，请检查模型设置后重试。");
     if (scopedTypes) {
       // 重新生成：只重跑并应用这一类，先清掉这一类旧标注，不覆盖其他类型。
+      const relevant = notes.filter((note) => scopedTypes.includes(note?.type));
+      if (!relevant.length) return { appliedHighlights: 0, densityHighlights: 0, inferredContentStart: 0 };
       clearGeneratedHighlights(scopedTypes);
-      const appliedHighlights = applyGeneratedHighlights(notes, scopedTypes);
+      const appliedHighlights = applyGeneratedHighlights(relevant, scopedTypes);
       await setTranscript(transcriptSegments, true);
       return { appliedHighlights, densityHighlights: 0, inferredContentStart: 0 };
     }
     const appliedHighlights = applyGeneratedHighlights(notes);
     const inferredContentStart = inferIntroContentStart(notes, episode.duration);
-    const densityHighlights = ensureAnnotationDensity(.25, inferredContentStart);
-    if (appliedHighlights + densityHighlights > 0) await setTranscript(transcriptSegments, true);
-    return { appliedHighlights, densityHighlights, inferredContentStart };
+    // 不额外做关键词密度补足，覆盖度完全交给模型按提示词判断。
+    if (appliedHighlights > 0) await setTranscript(transcriptSegments, true);
+    return { appliedHighlights, densityHighlights: 0, inferredContentStart };
   }
 
   function clearGeneratedHighlights(types) {
     const set = new Set(types);
     for (const segment of transcriptSegments) {
       segment.highlights = (segment.highlights || []).filter((mark) => !set.has(mark.type));
-      if (set.has("case") && segment.annotation?.type === "case") delete segment.annotation;
     }
   }
 
   async function regenerateAllTranscript() {
     if (!transcriptSegments.length) return showToast("还没有原文，先完成转写");
     if (!settings?.aiApiKey) return showToast("先在设置中填写 DeepSeek API Key");
-    showToast("正在重新生成原文标注…");
+    const platformId = currentPlatformId();
+    const paidSource = platformId === "xiaoyuzhou" ? "阿里云百炼 ASR" : platformId === "youtube" ? "Supadata 字幕" : platformId === "bilibili" && settings?.dashscopeApiKey ? "B 站字幕（无官方字幕时会调用百炼 ASR）" : "";
+    if (paidSource && !window.confirm(`重新获取原文会调用 ${paidSource}，可能消耗额度。确认继续吗？`)) return;
+    const previous = transcriptSegments;
+    isGenerating = true; // 让「原文」进度条能显示（updateProgress 仅在生成中展示）
     try {
-      // 清空智能分析（companion）标注
-      for (const segment of transcriptSegments) segment.highlights = (segment.highlights || []).filter((mark) => !(mark.type === "companion" && mark.custom));
+      transcriptSegments = [];
+      updateProgress("正在重新生成原文", platformId === "bilibili" ? "重新读取 B 站字幕并顺句…" : "重新获取并顺句…");
+      renderTranscript(); // 先清空原文区，显示“正在生成原文”+ 进度条
+      await ensureTranscript(true); // 重新抓取 + 顺句 + 校对
       customMarkResult = null;
-      await regenerateAnnotations({ silent: true });
+      try {
+        await regenerateAnnotations({ silent: true }); // 重新标注
+      } catch (annotationError) {
+        // 标注失败不丢原文：保留刚重取的原文，只明确提示，而不是整段回滚。
+        showToast(`原文已更新，但重新标注失败：${friendlyError(annotationError)}`);
+      }
       renderTranscript();
-      showToast("已重新生成原文标注（并清空智能分析）");
-    } catch (error) { showToast(friendlyError(error)); }
+      // 保留原有摘要/时间轴，不删除；并恢复摘要视图展示状态，避免残留「进度卡」。
+      if (currentDigest) showOnlyMain("digest");
+      else if (!settings?.aiApiKey) showOnlyMain("setupState");
+      else showOnlyMain("actions");
+      switchView("transcript"); // 回到「原文」视图，不牵出时间轴/摘要。
+      showToast("已重新生成原文"); // 保留原有摘要/时间轴，不删除。
+    } catch (error) {
+      // 只有原文抓取/顺句本身失败才回滚旧稿。
+      transcriptSegments = previous;
+      renderTranscript();
+      showToast(friendlyError(error));
+    } finally {
+      isGenerating = false;
+      hideTranscriptProgress();
+    }
   }
 
   async function regenerateAnnotationsFromDock(kind = "all") {
     if (!transcriptSegments.length) return showToast("还没有原文，先完成转写");
     if (!settings?.aiApiKey) return showToast("先在设置中填写 DeepSeek API Key");
     const types = kind === "highlight"
-      ? (settings?.highlightTypes?.length ? settings.highlightTypes : ["quote", "method"])
-      : kind === "bold" ? (settings?.boldTypes?.length ? settings.boldTypes : ["case", "fact"]) : null;
+      ? (settings?.highlightTypes?.length ? settings.highlightTypes : ["quote", "fact"])
+      : kind === "bold" ? (settings?.boldTypes?.length ? settings.boldTypes : ["method", "case"]) : null;
     showToast(kind === "highlight" ? "正在重新生成高亮…" : kind === "bold" ? "正在重新生成加粗…" : "正在重新标注…");
+    setDockRunning(kind, true);
     try {
+      // 先清空对应内容，再按当前配置重新生成（伴随按钮动画）。
+      if (types) { clearGeneratedHighlights(types); await setTranscript(transcriptSegments, true); }
       const { appliedHighlights } = types
         ? await regenerateAnnotations({ silent: true, types })
         : await regenerateAnnotations({ silent: true });
       renderTranscript();
       showToast(types ? `已重新生成（${appliedHighlights} 条）` : "已重新生成标注");
     } catch (error) { showToast(friendlyError(error)); }
+    finally { setDockRunning(kind, false); }
   }
 
-  async function generateChaptersFromTranscript(groups) {
+  async function generateChaptersFromTranscript(chunks) {
     const chapterDrafts = [];
-    for (let index = 0; index < groups.length; index += 1) {
-      updateProgress(`正在整理章节 ${index + 1}/${groups.length}`, "已经完成的章节会保留，不会因后面一段失败而重来。");
+    for (let index = 0; index < chunks.length; index += 1) {
+      const chunk = chunks[index];
+      updateProgress(`正在生成时间轴 ${index + 1}/${chunks.length}`, "按话题把原文整理成可跳转的章节。");
       try {
         const result = await callDeepSeek(
           `${CHAPTER_EDITOR_SYSTEM}${configurablePrompt("summaryPrompt")}`,
-          `节目：${episode.title}\n${readingPreferenceInstruction()}\n本段位于整期第 ${index + 1}/${groups.length} 部分。\n\n逐字稿：\n${groups[index]}`,
+          `节目：${episode.title}\n${readingPreferenceInstruction()}\n本段位于整期第 ${index + 1}/${chunks.length} 部分，覆盖 ${formatTime(chunk.startSeconds)}–${formatTime(chunk.endSeconds)}。${chunk.contextText ? `\n\n前情回顾（只用于理解承接，不要为这里重复开章节）：\n${chunk.contextText}` : ""}\n\n本段逐字稿：\n${chunk.text}`,
           3000,
         );
         chapterDrafts.push(...(Array.isArray(result?.chapters) ? result.chapters.slice(0, 4) : []));
@@ -1122,23 +1233,57 @@ sections:
         // 单段章节失败时继续处理后面的内容，最后仍能呈现已完成部分。
       }
     }
-    return normalizeDigest({ chapters: chapterDrafts }, episode.duration).chapters
+    const normalized = normalizeDigest({ chapters: chapterDrafts }, episode.duration).chapters
       .filter((item) => !/(购买信息|购买方式|售价|早鸟价|优惠活动|订阅引导)/.test(`${item.title} ${item.detail}`))
-      .filter((item, index, values) => index === 0 || item.startSeconds !== values[index - 1].startSeconds || item.title !== values[index - 1].title)
-      .slice(0, 18);
+      .filter((item, index, values) => index === 0 || item.startSeconds !== values[index - 1].startSeconds || item.title !== values[index - 1].title);
+    // 把章节起点吸附到真实逐字稿段落的起始时间，避免跳到不存在的时刻、出现悬空时间轴。
+    const starts = transcriptSegments.map((segment) => Math.max(0, Number(segment.startSeconds) || 0));
+    let snapped = normalized.map((chapter) => ({ ...chapter, startSeconds: XYD_PIPELINE.snapToNearestTimestamp(chapter.startSeconds, starts) }));
+    // 聚拢相邻章节：把间隔过近（被碎切成几秒/几十秒）的章节合并，让时间轴按“话题”划分而不是按停顿切碎。
+    snapped = mergeCloseChapters(snapped, 90);
+    if (snapped.length <= 18) return snapped;
+    return Array.from({ length: 18 }, (_, index) => snapped[Math.min(snapped.length - 1, Math.floor(index * snapped.length / 18))]);
+  }
+
+  // 合并间隔小于 minGap 秒的相邻章节；保留第一个的标题/摘要，吸收后续内容到 points。
+  function mergeCloseChapters(chapters, minGap = 90) {
+    const list = (Array.isArray(chapters) ? chapters : [])
+      .map((item) => ({ ...item, startSeconds: Math.max(0, Number(item?.startSeconds) || 0) }))
+      .filter((item) => item.title)
+      .sort((a, b) => a.startSeconds - b.startSeconds);
+    const merged = [];
+    for (const ch of list) {
+      const last = merged[merged.length - 1];
+      if (last && ch.startSeconds - last.startSeconds < minGap) {
+        // 吸收到上一章：拼接 points/detail，标题保留上一章（信息更全的那个标题）。
+        const prevPoints = Array.isArray(last.points) ? last.points : [];
+        const curPoints = Array.isArray(ch.points) ? ch.points : [];
+        last.points = [...new Set([...prevPoints, ...curPoints])].slice(0, 8);
+        if (!last.detail && ch.detail) last.detail = ch.detail;
+        if (!last.summary && ch.summary) last.summary = ch.summary;
+      } else {
+        merged.push(ch);
+      }
+    }
+    return merged;
   }
 
   async function generateOverviewFromChapters(chapters) {
-    updateProgress("正在生成速读总览", "根据已完成章节收束整期脉络。");
+    updateProgress("正在生成摘要", "基于章节整理整期脉络与要点。");
     let overview = null;
     try {
+      const length = settings?.summaryLength || "medium";
+      const profile = XYD_PIPELINE.summaryLengthProfile(length);
+      // 把档位指令放在最前并明确总量，避免被埋进冗长的「读者偏好」里而让模型忽略。
+      const tierLead = XYD_PIPELINE.summaryLengthInstruction(length);
+      const user = `${tierLead}\n\n节目：${episode.title}\n${readingPreferenceInstruction()}\n\n章节笔记：\n${JSON.stringify(chapters)}`;
       const result = await callDeepSeek(
         `${OVERVIEW_EDITOR_SYSTEM}${configurablePrompt("summaryPrompt")}`,
-        `节目：${episode.title}\n${readingPreferenceInstruction()}\n\n章节笔记：\n${JSON.stringify(chapters)}`,
-        3200,
+        user,
+        profile.maxTokens,
       );
       if (Array.isArray(result?.sections) && result.sections.length) {
-        overview = { opening: text(result.opening, 600), sections: result.sections.slice(0, 6) };
+        overview = XYD_PIPELINE.clampOverviewToProfile(result, length);
       }
     } catch (_error) {}
     return overview;
@@ -1146,8 +1291,7 @@ sections:
 
   async function digestFromCurrentTranscript(options = {}) {
     const segments = transcriptSegments;
-    if (!segments.length) throw new Error("没有可重新整理的逐字稿。");
-    const groups = groupTranscriptForAnnotations(segments);
+    if (!segments.length) throw new Error("没有可重新整理的原文。");
     let inferredContentStart = 0;
     if (options?.annotate !== false) {
       inferredContentStart = (await regenerateAnnotations()).inferredContentStart;
@@ -1155,8 +1299,9 @@ sections:
       const marks = segments.flatMap((seg) => (seg.highlights || []).map((m) => ({ ...m, startSeconds: seg.startSeconds })));
       inferredContentStart = Number.isFinite(Number(options?.contentStart)) ? Number(options.contentStart) : inferIntroContentStart(marks, episode.duration);
     }
-    const chapters = await generateChaptersFromTranscript(groups);
-    if (!chapters.length) throw new Error("章节整理暂时没有完成，请重试；逐字稿缓存不会丢失。");
+    const chapterChunks = XYD_PIPELINE.planChapterChunks(segments, { maxSeconds: 720 });
+    const chapters = await generateChaptersFromTranscript(chapterChunks);
+    if (!chapters.length) throw new Error("时间轴暂时没有生成完成，请稍后重试。");
     const overview = await generateOverviewFromChapters(chapters);
     let quickRead = "";
     if (!overview?.sections?.length) {
@@ -1168,26 +1313,38 @@ sections:
   async function regenerateDigestPart(part) {
     if (!transcriptSegments.length) return showToast("还没有原文，先完成转写");
     if (!settings?.aiApiKey) return showToast("先在设置中填写 DeepSeek API Key");
-    const savedView = activeSummaryView;
     const isTimeline = part === "chapters";
+    isGenerating = true;
     try {
+      const latestSettings = await chrome.storage.local.get(XYD_SETTINGS.STORAGE_KEY);
+      settings = XYD_SETTINGS.normalize(latestSettings[XYD_SETTINGS.STORAGE_KEY]);
+      if (!currentDigest) throw new Error("还没有摘要，先完整精读");
+      // 只重建被点击的那一块：时间轴视图只重建章节并停留在时间轴视图，
+      // 摘要视图只重建速读总览并停留在摘要视图，不再顺带重做另一半。
       if (isTimeline) {
-        if (!currentDigest) throw new Error("还没有摘要，先完整精读");
-        const groups = groupTranscriptForAnnotations(transcriptSegments);
-        const chapters = await generateChaptersFromTranscript(groups);
-        if (!chapters.length) throw new Error("时间轴生成没有完成，请稍后重试");
-        currentDigest = { ...currentDigest, chapters };
+        const chunks = XYD_PIPELINE.planChapterChunks(transcriptSegments, { maxSeconds: 720 });
+        const generated = await generateChaptersFromTranscript(chunks);
+        if (!generated.length) throw new Error("时间轴生成没有完成，请稍后重试");
+        currentDigest = { ...currentDigest, chapters: generated };
+        renderDigest(currentDigest);
+        await persistDigestToStorage(currentDigest);
+        switchView("timeline");
+        showToast("已重新生成时间轴");
       } else {
         if (!currentDigest?.chapters?.length) throw new Error("还没有章节，先完整精读");
         const overview = await generateOverviewFromChapters(currentDigest.chapters);
         if (!overview?.sections?.length) throw new Error("摘要生成没有完成，请稍后重试");
         currentDigest = { ...currentDigest, overview };
+        renderDigest(currentDigest);
+        await persistDigestToStorage(currentDigest);
+        switchView("summary");
+        showToast("已重新生成摘要");
       }
-      renderDigest(currentDigest);
-      await persistDigestToStorage(currentDigest);
-      switchView(savedView === "timeline" ? "timeline" : "summary");
-      showToast(isTimeline ? "已重新生成时间轴" : "已重新生成摘要");
     } catch (error) { showError(error); }
+    finally {
+      isGenerating = false;
+      hideTranscriptProgress();
+    }
   }
 
   // L1+L2：确保已有可用的精修逐字稿。只在逐字稿为空或强制转写时才跑转写+精修。
@@ -1195,16 +1352,14 @@ sections:
     if (transcriptSegments.length && !forceAsr) return transcriptSegments;
     const platformId = currentPlatformId();
     // 只有「必须整段音频 ASR」的平台（小宇宙等）才要求 audioUrl；
-    // YouTube 走字幕（captions），无需音频地址。
-    if (platformId !== "youtube" && !episode?.audioUrl) throw new Error("没有读取到这一集的音频地址，请重新打开单集后重试。");
-    updateProgress("正在获取逐字稿", platformId === "youtube"
+    // YouTube / B 站走官方字幕（captions），无需音频地址。
+    if (platformId !== "youtube" && platformId !== "bilibili" && !episode?.audioUrl) throw new Error("没有读取到这一集的音频地址，请重新打开单集后重试。");
+    updateProgress("正在获取原文", platformId === "youtube" || platformId === "bilibili"
       ? "正在读取视频字幕。"
-      : settings?.asrProvider === "supadata"
-        ? "Supadata 正在处理整期音频。"
-        : "百炼正在识别时间戳并区分说话人。");
+      : "正在转写音频并区分说话人。");
     let rawSegments = await requestTranscript(episode.audioUrl, (message) => updateProgress("正在转写音频", message), forceAsr);
-    if (!rawSegments.length) throw new Error("没有取得可用的逐字稿。");
-    if (settings?.asrProvider === "aliyun") rawSegments = await refineTranscriptWithAgents(rawSegments);
+    if (!rawSegments.length) throw new Error("没有拿到可用的原文。");
+    rawSegments = await refineTranscriptWithAgents(rawSegments);
     await setTranscript(rawSegments, true);
     await seedBackendTranscriptCache();
     return transcriptSegments;
@@ -1244,11 +1399,90 @@ sections:
     } catch (_error) {}
   }
 
+  // 根据进度文案判断当前在推进哪一块内容：首次完整精读时把视图保持在「原文」，
+  // 让用户看到字幕与标注逐段生成；已有摘要的局部重组（重新生成时间轴/摘要）不强行切走视图。
+  function progressKindForTitle(title) {
+    const value = String(title || "");
+    if (/时间轴|章节/.test(value)) return "timeline";
+    if (/摘要|速读|总览/.test(value)) return "summary";
+    return "transcript";
+  }
+
+  // 在指定面板（summary/timeline）内部显示进度卡，并隐藏该面板的内容，
+  // 从而让正在重组的视图显示「生成中」，另一个视图保留自己的内容。
+  function renderPanelProgress(panel, title, detail) {
+    const progressEl = byId(panel === "timeline" ? "timelineProgress" : "summaryProgress");
+    const contentEl = byId(panel === "timeline" ? "chapters" : "quickRead");
+    if (!progressEl || !contentEl) return;
+    contentEl.hidden = true;
+    progressEl.hidden = false;
+    const card = document.createElement("div"); card.className = "progress-card";
+    const spinner = document.createElement("div"); spinner.className = "spinner"; spinner.setAttribute("aria-hidden", "true");
+    const content = document.createElement("div");
+    const strong = document.createElement("strong"); strong.textContent = title;
+    const p = document.createElement("p"); p.textContent = detail;
+    const track = document.createElement("div"); track.className = "progress-track"; track.setAttribute("aria-hidden", "true");
+    const fill = document.createElement("div"); fill.className = "progress-fill";
+    track.append(fill);
+    content.append(strong, p, track);
+    card.append(spinner, content);
+    progressEl.replaceChildren(card);
+    activeProgress = { panel, fill, track };
+  }
+
+  function setPanelProgressInactive(panel) {
+    const progressEl = byId(panel === "timeline" ? "timelineProgress" : "summaryProgress");
+    const contentEl = byId(panel === "timeline" ? "chapters" : "quickRead");
+    if (progressEl) progressEl.hidden = true;
+    if (contentEl) contentEl.hidden = false;
+  }
+
+  function clearAllPanelProgress() {
+    setPanelProgressInactive("summary");
+    setPanelProgressInactive("timeline");
+    activeProgress = null;
+  }
+
+  function setTranscriptProgress(title, detail) {
+    const bar = byId("transcriptProgress");
+    const titleEl = byId("transcriptProgressTitle");
+    const fillEl = byId("transcriptProgressFill");
+    if (!bar) return;
+    bar.hidden = false;
+    if (titleEl) titleEl.textContent = title;
+    const combined = `${title} ${detail || ""}`;
+    const stepMatch = combined.match(/(\d+)\s*\/\s*(\d+)/);
+    if (stepMatch && fillEl) {
+      const pct = Math.min(100, Math.round((Number(stepMatch[1]) / Number(stepMatch[2])) * 100));
+      fillEl.classList.remove("indeterminate");
+      fillEl.style.width = `${pct}%`;
+    } else if (fillEl) {
+      fillEl.classList.add("indeterminate");
+      fillEl.style.width = "";
+    }
+  }
+
+  function hideTranscriptProgress() {
+    const bar = byId("transcriptProgress");
+    if (bar) bar.hidden = true;
+  }
+
   function updateProgress(title, detail) {
-    switchView("summary");
-    showOnlyMain("progressCard");
-    byId("progressTitle").textContent = title;
-    byId("progressText").textContent = detail;
+    const kind = progressKindForTitle(title);
+    // 原文视图的生成进度条：只在原文相关阶段（转写/顺句/校对/标注）显示。
+    if (isGenerating && kind === "transcript") setTranscriptProgress(title, detail);
+    else hideTranscriptProgress();
+    // 摘要与时间轴各自独立：已有摘要时，进度卡只出现在正在重组的那个视图内，
+    // 另一个视图（摘要/时间轴）保留自己的内容不动；首次完整精读才用全屏进度卡代替空状态。
+    const progressPanel = currentDigest ? (kind === "timeline" ? "timeline" : kind === "summary" ? "summary" : "") : "";
+    if (progressPanel) {
+      renderPanelProgress(progressPanel, title, detail);
+    } else {
+      if (activeProgress) clearAllPanelProgress();
+      showOnlyMain("progressCard");
+      byId("progressTitle").textContent = title;
+      byId("progressText").textContent = detail;
+    }
     updateProgressBar(title, detail);
     if (title !== progressStageName) {
       recordProgressStage();
@@ -1258,8 +1492,9 @@ sections:
   }
 
   function updateProgressBar(title, detail) {
-    const fill = byId("progressFill");
-    const track = byId("progressTrack");
+    // 有面板级进度时更新面板内的进度条；否则更新 summaryView 里的全屏进度卡。
+    const fill = activeProgress?.fill || byId("progressFill");
+    const track = activeProgress?.track || byId("progressTrack");
     if (!fill || !track) return;
     const combined = `${title} ${detail || ""}`;
     const chunkMatch = combined.match(/已完成\s*(\d+)\s*\/\s*(\d+)/);
@@ -1526,6 +1761,21 @@ sections:
     const bodySegments = contentStart ? indexedSegments.filter((item) => item.segment.startSeconds >= contentStart) : indexedSegments;
     const segmentsForHighlights = showIntro ? indexedSegments : bodySegments;
     setHidden("transcriptEmpty", hasTranscript);
+    if (!hasTranscript) {
+      const empty = byId("transcriptEmpty");
+      const heading = empty?.querySelector("h2");
+      const para = empty?.querySelector("p");
+      const btn = empty?.querySelector("button");
+      if (isGenerating) {
+        if (heading) heading.textContent = "正在生成原文";
+        if (para) para.textContent = progressStageName ? `${progressStageName}…` : "正在获取字幕与标注…";
+        if (btn) btn.textContent = "正在生成…";
+      } else {
+        if (heading) heading.textContent = "还没有原文";
+        if (para) para.textContent = "点击“智能生成”，原文会陆续出现在这里。";
+        if (btn) btn.textContent = "智能生成";
+      }
+    }
     byId("readingDock").hidden = !hasTranscript || activeView !== "transcript";
 
     const appendSegment = ({ segment, index }, extraClass = "") => {
@@ -1534,7 +1784,6 @@ sections:
       button.tabIndex = 0;
       button.setAttribute("role", "button");
       if (extraClass) button.classList.add(...extraClass.split(" "));
-      if (segment.annotation?.type === "case") button.classList.add("case-highlight");
       button.dataset.index = String(index);
       button.dataset.seconds = String(segment.startSeconds);
       button.setAttribute("aria-label", `${formatTime(segment.startSeconds)}，${segment.text}`);
@@ -1543,28 +1792,27 @@ sections:
       time.textContent = formatTime(segment.startSeconds);
       const copy = document.createElement("span");
       copy.className = "transcript-text";
-      if (segment.annotation?.type === "case") {
-        const caseLabel = document.createElement("span");
-        caseLabel.className = "case-label";
-        caseLabel.textContent = segment.annotation.title || "Case";
-        copy.appendChild(caseLabel);
-      }
       const speaker = document.createElement("span");
       speaker.className = "speaker-label";
       speaker.textContent = segment.speaker || "";
       const showTranslation = transcriptLang !== "source";
       const translated = showTranslation ? segment.translatedText || "" : "";
-      if (showTranslation && translated) {
-        const trans = document.createElement("div");
-        trans.className = "transcript-translation";
-        appendHighlightedText(trans, translated, segment.highlights?.length ? [] : [], {});
-        copy.appendChild(trans);
-        if (transcriptLang === "zh-en" && segment.text) {
+      if (showTranslation && translated && translated !== segment.text) {
+        if (segment.text) {
           const orig = document.createElement("div");
           orig.className = "transcript-original";
           appendHighlightedText(orig, segment.text, segment.highlights, { onPendingClick: (mark, spec) => openHighlightConfirm(mark, spec, segment, index) });
-          copy.appendChild(orig);
+          if (transcriptLang === "zh-en") copy.appendChild(orig);
+          else orig.classList.add("transcript-original-after");
+          if (transcriptLang !== "zh-en") copy.dataset.originalAfter = "true";
+          copy._translatedOriginal = orig;
         }
+        const trans = document.createElement("div");
+        trans.className = "transcript-translation";
+        appendHighlightedText(trans, translated, [], {});
+        copy.appendChild(trans);
+        if (copy._translatedOriginal && transcriptLang !== "zh-en") copy.appendChild(copy._translatedOriginal);
+        delete copy._translatedOriginal;
       } else {
         appendHighlightedText(copy, segment.text, segment.highlights, { onPendingClick: (mark, spec) => openHighlightConfirm(mark, spec, segment, index) });
       }
@@ -1597,12 +1845,50 @@ sections:
       root.appendChild(divider);
     };
 
+    const appendChapterCard = (chapter) => {
+      const card = document.createElement("div");
+      card.className = "transcript-chapter-card";
+      card.dataset.seconds = String(chapter.startSeconds || 0);
+      const meta = document.createElement("span");
+      meta.className = "transcript-chapter-meta";
+      meta.textContent = formatTime(chapter.startSeconds);
+      const title = document.createElement("strong");
+      title.textContent = chapter.title || "";
+      const summary = document.createElement("span");
+      summary.className = "transcript-chapter-summary";
+      summary.textContent = chapter.summary || chapter.points?.[0] || "";
+      card.append(meta, title, summary);
+      card.setAttribute("role", "button");
+      card.tabIndex = 0;
+      card.addEventListener("click", () => {
+        seekTo(chapter.startSeconds).catch(() => showToast("页面里没有播放器，请在小宇宙或 YouTube 页面打开侧边栏"));
+      });
+      card.addEventListener("keydown", (event) => {
+        if (!["Enter", " "].includes(event.key)) return;
+        event.preventDefault();
+        seekTo(chapter.startSeconds).catch(() => showToast("页面里没有播放器，请在小宇宙或 YouTube 页面打开侧边栏"));
+      });
+      root.appendChild(card);
+    };
+
     if (contentStart && introSegments.length) {
       if (showIntro) introSegments.forEach((item) => appendSegment(item, "intro-segment"));
       else introSegments.slice(-2).forEach((item, index) => appendSegment(item, `intro-fade intro-fade-${index + 1}`));
       appendSkipDivider();
     }
-    bodySegments.forEach((item) => appendSegment(item));
+    // 把时间轴章节作为卡片插入正文：每章在第一段之前插入。
+    const chapters = (currentDigest?.chapters || []).slice().sort((a, b) => (a.startSeconds || 0) - (b.startSeconds || 0));
+    let chapterIndex = 0;
+    for (let index = 0; index < bodySegments.length; index += 1) {
+      const item = bodySegments[index];
+      while (chapterIndex < chapters.length && item.segment.startSeconds >= (chapters[chapterIndex].startSeconds || 0)) {
+        appendChapterCard(chapters[chapterIndex]);
+        chapterIndex += 1;
+      }
+      appendSegment(item);
+    }
+    // 章节正文起点在最后一段之后也可能有剩余章节（通常第二段才触发），追加到末尾。
+    for (; chapterIndex < chapters.length; chapterIndex += 1) appendChapterCard(chapters[chapterIndex]);
     if (isTranscribing) {
       const tail = document.createElement("div");
       tail.className = "transcript-loading-tail";
@@ -1783,12 +2069,29 @@ sections:
   function visualClassNameFor(markType) {
     // 类别 → 视觉：金句/数据默认黄荧光笔，方法论/事件默认加粗；用户可在「高亮/加粗」下拉里调整。
     if (["quote", "fact", "method", "case"].includes(markType)) {
-      const isBold = (settings?.boldTypes || ["case", "fact"]).includes(markType);
-      const isHighlighted = (settings?.highlightTypes || ["quote", "method"]).includes(markType);
-      if (isBold && !isHighlighted) return "fact";
-      return "quote";
+      // 用 .length 判断而非 `||`：空数组 [] 是 truthy，会绕过默认，导致无视觉。
+      const boldTypes = (settings?.boldTypes?.length ? settings.boldTypes : ["method", "case"]);
+      const highlightTypes = (settings?.highlightTypes?.length ? settings.highlightTypes : ["quote", "fact"]);
+      const isBold = boldTypes.includes(markType);
+      const isHighlighted = highlightTypes.includes(markType);
+      if (isHighlighted) return "quote";
+      if (isBold) return "fact";
+      return "unmarked";
     }
     return markType;
+  }
+
+  // 视觉互斥：一个区间只取一种视觉，避免黄+加粗叠加。
+  // 优先级：智能分析(companion) > 加粗(method/case)=fact > 黄(quote/fact)=quote > 无。
+  // 智能分析要压在黄/加粗之上，所以 companion 优先。
+  function classNameForRegion(activeMarks) {
+    const classes = activeMarks.map((item) => visualClassNameFor(item.type));
+    if (classes.includes("companion")) return "companion";
+    if (classes.includes("fact")) return "fact";
+    if (classes.includes("quote")) return "quote";
+    // 其它类型保留各自 class，避免整段失去样式。
+    for (const cls of classes) if (cls) return cls;
+    return "";
   }
 
   function appendHighlightedText(root, value, highlights = [], options = {}) {
@@ -1816,7 +2119,12 @@ sections:
         continue;
       }
       const mark = document.createElement("mark");
-      mark.className = [...new Set(active.map((item) => visualClassNameFor(item.type)).concat(active.some((item) => item.pending && !item.accepted) ? ["pending"] : []))].join(" ");
+      // 视觉互斥：同一区间只呈现一种标注，避免黄+加粗叠加。
+      // 优先级 加粗(method/case)=fact > 黄(quote/fact)=quote > 无。
+      mark.className = [...new Set([
+        classNameForRegion(active),
+        active.some((item) => item.pending && !item.accepted) ? "pending" : "",
+      ].filter(Boolean))].join(" ");
       const companionMark = active.find((item) => item.type === "companion" && item.color);
       if (companionMark) mark.style.setProperty("--companion-color", companionMark.color);
       if (active.some((item) => item.pending && !item.accepted)) mark.classList.add("pending");
@@ -1879,7 +2187,7 @@ sections:
   function applyGeneratedHighlights(notes, types = null) {
     let applied = 0;
     const allowed = new Set(types || ["case", "quote", "fact", "method"]);
-    const limits = { case: 64, quote: 24, fact: 100, method: 30 };
+    const limits = { case: 192, quote: 120, fact: 400, method: 160 };
     const selected = [];
     for (const type of Object.keys(limits)) {
       if (!allowed.has(type)) continue;
@@ -1913,18 +2221,11 @@ sections:
       for (const candidate of candidates) {
         const range = locatePhrase(candidate.segment.text, phrase);
         if (!range) continue;
-        if (note.type === "case") {
-          if (!candidate.segment.annotation) {
-            candidate.segment.annotation = { type: "case", label: "", title: text(note?.title, 160) || "案例" };
-            applied += 1;
-          }
-        } else {
-          const highlights = Array.isArray(candidate.segment.highlights) ? candidate.segment.highlights : [];
-          const { start, end } = range;
-          if (!highlights.some((mark) => mark.start === start && mark.end === end)) {
-            candidate.segment.highlights = [...highlights, { id: `hl-${candidate.index}-${start}-${end}-${note.type}`, type: note.type, start, end, pending: true }];
-            applied += 1;
-          }
+        const highlights = Array.isArray(candidate.segment.highlights) ? candidate.segment.highlights : [];
+        const { start, end } = range;
+        if (!highlights.some((mark) => mark.start === start && mark.end === end)) {
+          candidate.segment.highlights = [...highlights, { id: `hl-${candidate.index}-${start}-${end}-${note.type}`, type: note.type, start, end, pending: true }];
+          applied += 1;
         }
         break;
       }
@@ -1942,67 +2243,8 @@ sections:
     return scheduleOnly.test(phrase) && !knowledgeSignal.test(phrase);
   }
 
-  function ensureAnnotationDensity(target = .25, contentStartSeconds = 0) {
-    const body = transcriptSegments.filter((segment) => segment.startSeconds >= contentStartSeconds);
-    const totalChars = body.reduce((sum, segment) => sum + segment.text.length, 0);
-    const coveredLength = (segment) => {
-      if (segment.annotation?.type === "case") return segment.text.length;
-      const ranges = (segment.highlights || [])
-        .map((mark) => [Math.max(0, Number(mark.start) || 0), Math.min(segment.text.length, Number(mark.end) || 0)])
-        .filter(([start, end]) => end > start)
-        .sort((a, b) => a[0] - b[0]);
-      let covered = 0;
-      let end = 0;
-      for (const [start, nextEnd] of ranges) {
-        if (nextEnd <= end) continue;
-        covered += nextEnd - Math.max(start, end);
-        end = nextEnd;
-      }
-      return covered;
-    };
-    let annotatedChars = body.reduce((sum, segment) => sum + coveredLength(segment), 0);
-    const targetChars = Math.round(totalChars * target);
-    if (!totalChars || annotatedChars >= targetChars) return 0;
-    const candidates = [];
-    const actionPattern = /(上线|推出|投放|融资|转型|关闭|下架|收购|加入|创办|成立|发布|改版|决定|承诺|增长|下降|拆分|合并|开放|停止|改成|延长|超过|达到)/;
-    const evidencePattern = /(\d|一亿|千万|百万|十万|万名|万用户|日活|月活|估值|收入|成本|比例|倍)/;
-    const insightPattern = /(核心|本质|关键|差异化|不等于|不是.+而是|意味着|就在于|真正|只懂|不懂)/;
-    for (const segment of body) {
-      if (segment.annotation?.type === "case") continue;
-      const matcher = /[^。！？!?]+[。！？!?]?/g;
-      let match;
-      while ((match = matcher.exec(segment.text))) {
-        const leading = match[0].search(/\S/);
-        if (leading < 0) continue;
-        const phrase = match[0].trim();
-        if (phrase.length < 12 || phrase.length > 150) continue;
-        if (isLowValueOrPromotionalText(phrase)) continue;
-        const start = match.index + leading;
-        const end = start + phrase.length;
-        if ((segment.highlights || []).some((mark) => start < mark.end && end > mark.start)) continue;
-        const hasAction = actionPattern.test(phrase);
-        const hasEvidence = evidencePattern.test(phrase);
-        const hasInsight = insightPattern.test(phrase);
-        const score = (hasAction ? 5 : 0) + (hasEvidence ? 4 : 0) + (hasInsight ? 4 : 0);
-        if (score < 4) continue;
-        if (hasEvidence && !hasAction && !hasInsight) continue;
-        candidates.push({ segment, start, end, score });
-      }
-    }
-    candidates.sort((a, b) => b.score - a.score || a.segment.startSeconds - b.segment.startSeconds);
-    let added = 0;
-    for (const candidate of candidates) {
-      if (annotatedChars >= targetChars) break;
-      candidate.segment.highlights = [...(candidate.segment.highlights || []), { id: `hl-fact-${Math.round(candidate.segment.startSeconds)}-${candidate.start}-${candidate.end}`, type: "fact", start: candidate.start, end: candidate.end, pending: true }];
-      annotatedChars += candidate.end - candidate.start;
-      added += 1;
-    }
-    return added;
-  }
-
   async function setTranscript(segments, persist = false) {
     const isCurated = segments.some((segment) => segment?.speaker || segment?.annotation || Array.isArray(segment?.highlights));
-    const isDemoEpisode = globalThis.XYD_DEMO_DATA?.episodeId === episode?.id;
     transcriptSegments = isCurated
       ? segments.map((segment) => ({
           startSeconds: Math.max(0, Number(segment?.startSeconds) || 0),
@@ -2010,42 +2252,14 @@ sections:
           speakerId: text(segment?.speakerId ?? segment?.speaker_id, 30),
           speaker: text(segment?.speaker, 50),
           text: text(segment?.text, 50000),
+          ...(text(segment?.translatedText, 50000) ? { translatedText: text(segment.translatedText, 50000) } : {}),
+          ...(text(segment?.translatedLang, 30) ? { translatedLang: text(segment.translatedLang, 30) } : {}),
           ...(text(segment?.rawText, 50000) && text(segment?.rawText, 50000) !== text(segment?.text, 50000) ? { rawText: text(segment.rawText, 50000) } : {}),
           highlights: (Array.isArray(segment?.highlights) ? segment.highlights : [])
-            .filter((mark) => !isDemoEpisode || mark?.type !== "quote" || DEMO_GOLDEN_QUOTES.has(String(segment?.text || "").slice(mark.start, mark.end)))
             .slice(0, 20)
             .map((mark) => mark?.type === "companion" ? { ...mark, color: appleCompanionColor(mark.color) } : mark),
-          annotation: segment?.annotation?.type === "case" ? { type: "case", label: text(segment.annotation.label, 30), title: text(segment.annotation.title, 160) } : null,
         })).filter((segment) => segment.text)
       : paragraphizeTranscript(segments);
-    if (isDemoEpisode) {
-      for (const [seconds, title] of DEMO_EXTRA_CASES) {
-        const segment = transcriptSegments.find((item) => Math.abs(item.startSeconds - seconds) <= 3);
-        if (segment && !segment.annotation) segment.annotation = { type: "case", label: "", title };
-      }
-      for (const [seconds, phrase] of DEMO_KEY_FACTS) {
-        const candidates = transcriptSegments
-          .filter((item) => Math.abs(item.startSeconds - seconds) <= 4)
-          .sort((a, b) => Math.abs(a.startSeconds - seconds) - Math.abs(b.startSeconds - seconds));
-        const segment = candidates.find((item) => item.text.includes(phrase));
-        if (!segment) continue;
-        const start = segment.text.indexOf(phrase);
-        const end = start + phrase.length;
-        if (!(segment.highlights || []).some((mark) => mark.start === start && mark.end === end)) {
-          segment.highlights = [...(segment.highlights || []), { type: "fact", start, end }];
-        }
-      }
-      for (const phrase of DEMO_GOLDEN_QUOTES) {
-        const segment = transcriptSegments.find((item) => item.text.includes(phrase));
-        if (!segment) continue;
-        const start = segment.text.indexOf(phrase);
-        const end = start + phrase.length;
-        if (!(segment.highlights || []).some((mark) => mark.start === start && mark.end === end)) {
-          segment.highlights = [...(segment.highlights || []), { type: "quote", start, end }];
-        }
-      }
-      ensureAnnotationDensity(.25, Math.max(0, Number(globalThis.XYD_DEMO_DATA?.contentStartSeconds) || 0));
-    }
     activeTranscriptIndex = -1;
     transcriptLang = "source";
     updateLangButton();
@@ -2103,7 +2317,7 @@ sections:
   function jumpToAnnotation(type, direction = 1) {
     const matches = transcriptSegments
       .map((segment, index) => ({ segment, index }))
-      .filter(({ segment }) => type === "case" ? segment.annotation?.type === "case" : (segment.highlights || []).some((mark) => mark.type === type));
+      .filter(({ segment }) => (segment.highlights || []).some((mark) => mark.type === type));
     if (!matches.length) return;
     const next = direction > 0
       ? matches.find((item) => item.index > activeTranscriptIndex) || matches[0]
@@ -2128,10 +2342,6 @@ sections:
     }
   }
 
-  function setCompanionSheet(open) {
-    byId("companionSheet").hidden = !open;
-  }
-
   function setCompanionDockColor(color, active = true) {
     const dock = byId("readingDock");
     if (!dock) return;
@@ -2146,12 +2356,17 @@ sections:
     const isOpen = panel.dataset.kind === kind && !panel.hidden;
     hideMarkDockPanel();
     if (isOpen) return;
+    // 智能分析每次打开都从「未选方向」开始，避免沿用上次的方向导致「开始分析」一开始就激活。
+    if (kind === "custom") { pendingCustomDirection = ""; pendingCustomColor = ""; }
     renderMarkDockPanel(kind);
     panel.dataset.kind = kind;
     panel.hidden = false;
     if (button?.getBoundingClientRect && window.innerWidth) {
       const rect = button.getBoundingClientRect();
-      panel.style.left = `${Math.max(2, rect.left)}px`;
+      // 面板是相对 .mark-dock（position:relative）定位的，需用按钮相对容器的坐标，否则会偏移。
+      const dockRect = byId("readingDock")?.getBoundingClientRect();
+      const left = dockRect ? rect.left - dockRect.left : rect.left;
+      panel.style.left = `${Math.max(2, left)}px`;
     }
     button?.setAttribute("aria-expanded", "true");
   }
@@ -2171,36 +2386,28 @@ sections:
     const fourTypes = ["quote", "method", "case", "fact"];
     const fourLabels = { quote: "核心观点", method: "方法论", case: "案例分析", fact: "数据事实" };
     if (kind === "highlight" || kind === "bold") {
-      const checks = document.createElement("span"); checks.className = "mdp-checks";
       const field = kind === "highlight" ? "highlightTypes" : "boldTypes";
-      const current = settings?.[field]?.length ? settings[field] : (kind === "highlight" ? ["quote", "method"] : ["case", "fact"]);
+      const active = settings?.[field]?.length ? settings[field] : (kind === "highlight" ? ["quote", "fact"] : ["method", "case"]);
+      const checks = document.createElement("span"); checks.className = "mdp-checks";
       for (const cat of fourTypes) {
-        checks.appendChild(buildDockCheck(cat, cat, fourLabels[cat], current.includes(cat)));
+        checks.appendChild(buildDockCategoryOption(kind, cat, fourLabels[cat], active.includes(cat)));
       }
       panel.append(checks);
-      const regen = document.createElement("button");
-      regen.type = "button";
-      regen.className = "mdp-apply";
-      regen.textContent = "重新生成";
-      regen.addEventListener("click", () => { hideMarkDockPanel(); regenerateAnnotationsFromDock(kind); });
-      panel.append(regen);
+      panel.append(buildDockDivider());
+      panel.append(buildDockRegen(kind === "highlight" ? "重新生成高亮" : "重新生成加粗", () => { hideMarkDockPanel(); regenerateAnnotationsFromDock(kind); }));
       return;
     }
     if (kind === "lang") {
       const langOptions = [["source", "原文"], ["zh-CN", "中文"], ["en", "英文"], ["zh-en", "双语"]];
       for (const [value, label] of langOptions) panel.append(buildLangOption(value, label));
       if (transcriptLang !== "source") {
-        const regen = document.createElement("button");
-        regen.type = "button";
-        regen.className = "mdp-apply";
-        regen.textContent = "重新生成译文";
-        regen.addEventListener("click", () => { hideMarkDockPanel(); regenerateTranslation(); });
-        panel.append(regen);
+        panel.append(buildDockDivider());
+        panel.append(buildDockRegen("重新生成译文", () => { hideMarkDockPanel(); runDockGeneration("lang", () => regenerateTranslation()); }));
       }
       return;
     }
     const customLabels = { ai: "AI知识", product: "产品设计", business: "商业化思维", custom: "自定义" };
-    const dir = settings?.customDirection || "";
+    const dir = pendingCustomDirection;
     const checks = document.createElement("span"); checks.className = "mdp-checks";
     for (const item of ["ai", "product", "business"]) {
       const btn = document.createElement("button");
@@ -2209,6 +2416,7 @@ sections:
       btn.textContent = customLabels[item];
       if (customMarkResult?.key === item) btn.style.color = customMarkResult.color;
       btn.addEventListener("click", () => {
+        pendingCustomDirection = item;
         settings = XYD_SETTINGS.normalize({ ...settings, customDirection: item });
         persistSettingsPatch().catch(() => {});
         renderMarkDockPanel("custom");
@@ -2218,9 +2426,10 @@ sections:
     const customBtn = document.createElement("button");
     customBtn.type = "button";
     customBtn.className = "mdp-check mdp-custom" + (dir === "custom" ? " selected" : "");
-    customBtn.textContent = "自定义";
+    customBtn.textContent = customLabels.custom;
     if (customMarkResult?.key === "custom") customBtn.style.color = customMarkResult.color;
     customBtn.addEventListener("click", () => {
+      pendingCustomDirection = "custom";
       settings = XYD_SETTINGS.normalize({ ...settings, customDirection: "custom" });
       persistSettingsPatch().catch(() => {});
       renderMarkDockPanel("custom");
@@ -2233,18 +2442,23 @@ sections:
     goalInput.placeholder = "自定义方向";
     goalInput.addEventListener("input", () => {
       const hasText = Boolean(goalInput.value.trim());
-      settings = XYD_SETTINGS.normalize({ ...settings, customGoal: goalInput.value, customDirection: hasText ? "custom" : (settings?.customDirection === "custom" ? "" : settings.customDirection) });
+      const nextDir = hasText ? "custom" : (settings?.customDirection === "custom" ? "" : settings.customDirection);
+      pendingCustomDirection = nextDir;
+      settings = XYD_SETTINGS.normalize({ ...settings, customGoal: goalInput.value, customDirection: nextDir });
       persistSettingsPatch().catch(() => {});
       renderMarkDockPanel("custom");
     });
     const colors = document.createElement("span"); colors.className = "mdp-colors";
-    const colorVal = settings?.customColor || "#ff9500";
+    if (!pendingCustomColor) pendingCustomColor = firstUnusedCompanionColor();
+    const colorVal = pendingCustomColor;
     for (const c of ["#ff9500", "#34c759", "#007aff", "#ff2d55", "#af52de"]) {
       const swatch = document.createElement("button"); swatch.type = "button"; swatch.style.setProperty("--swatch", c); swatch.dataset.color = c; swatch.className = colorVal === c ? "selected" : ""; swatch.setAttribute("aria-label", c);
       swatch.addEventListener("click", () => {
+        // 单选：点哪个就选中哪个，并保持到本次分析结束（自定义默认色只作建议，不覆盖用户选择）。
+        pendingCustomColor = c;
         settings = XYD_SETTINGS.normalize({ ...settings, customColor: c });
         persistSettingsPatch().catch(() => {});
-        markCustomColor = c;
+        customMarkColor = c;
         setCompanionDockColor(c, true);
         renderMarkDockPanel("custom");
       });
@@ -2256,23 +2470,23 @@ sections:
       const row = document.createElement("div"); row.className = "mdp-result";
       const dot = document.createElement("span"); dot.className = "mdp-result-dot"; dot.style.setProperty("--swatch", result.color);
       const label = document.createElement("span"); label.className = "mdp-result-label"; label.textContent = result.label; label.style.color = result.color;
-      const regen = document.createElement("button"); regen.type = "button"; regen.className = "mdp-result-icon"; regen.title = "重新生成"; regen.setAttribute("aria-label", "重新生成");
-      regen.append(createActionIcon("refresh"));
-      regen.addEventListener("click", () => regenerateCustomMark());
       const del = document.createElement("button"); del.type = "button"; del.className = "mdp-result-icon"; del.title = "删除"; del.setAttribute("aria-label", "删除");
       del.append(createActionIcon("delete"));
-      del.addEventListener("click", () => removeCustomMark());
-      row.append(dot, label, regen, del);
+      del.addEventListener("click", () => { hideMarkDockPanel(); runDockGeneration("custom", () => removeCustomMark()); });
+      row.append(dot, label, del);
       panel.append(row);
     } else {
       const apply = document.createElement("button");
       apply.type = "button";
       apply.className = "mdp-apply";
       apply.textContent = "开始分析";
-      apply.disabled = !dir;
-      apply.addEventListener("click", () => runCustomMark());
+      // 未选方向（或选「自定义」但没填目标）时置灰不可点；选好方向后变黑激活。
+      apply.disabled = !dir || (dir === "custom" && !(settings?.customGoal || "").trim());
+      apply.addEventListener("click", () => { hideMarkDockPanel(); runDockGeneration("custom", () => runCustomMark()); });
       panel.append(apply);
     }
+    panel.append(buildDockDivider());
+    panel.append(buildDockRegen("重新生成（当前方向）", () => { hideMarkDockPanel(); runDockGeneration("custom", () => regenerateCustomMark()); }));
   }
 
   function buildLangOption(value, label) {
@@ -2282,8 +2496,8 @@ sections:
     btn.textContent = label;
     btn.setAttribute("data-lang", value);
     btn.addEventListener("click", () => {
-      translateTranscript(value);
       hideMarkDockPanel();
+      runDockGeneration("lang", () => translateTranscript(value));
     });
     return btn;
   }
@@ -2294,29 +2508,95 @@ sections:
     if (el) el.textContent = label;
   }
 
-  function buildDockCheck(dotClass, value, text, selected) {
+  function buildDockCategoryOption(kind, cat, label, selected) {
     const btn = document.createElement("button");
     btn.type = "button";
     btn.className = "mdp-check" + (selected ? " selected" : "");
     const dot = document.createElement("span");
-    dot.className = "mdp-dot " + dotClass;
-    dot.style.setProperty("--swatch", dotClass === "quote" || dotClass === "fact" ? "#ffc928" : "#1d1d1f");
-    btn.append(dot, document.createTextNode(text));
+    dot.className = "mdp-dot " + cat;
+    dot.style.setProperty("--swatch", cat === "quote" || cat === "fact" ? "#ffc928" : "#1d1d1f");
+    btn.append(dot, document.createTextNode(label));
     btn.addEventListener("click", () => {
-      const next = !selected;
-      btn.classList.toggle("selected", next);
-      // 判断当前展开的是哪个下拉：根据 value 属于哪类字段
-      const panel = byId("markDockPanel");
-      const kind = panel?.dataset?.kind || "highlight";
-      const cfgKey = kind === "highlight" ? "highlightTypes" : kind === "bold" ? "boldTypes" : "customItems";
-      const cur = new Set(settings?.[cfgKey]?.length ? settings[cfgKey] : (cfgKey === "customItems" ? [] : cfgKey === "highlightTypes" ? ["quote", "method"] : ["case", "fact"]));
-      if (next) cur.add(value); else cur.delete(value);
-      settings = XYD_SETTINGS.normalize({ ...settings, [cfgKey]: [...cur] });
-      persistSettingsPatch().catch(() => {});
-      renderTranscript();
-      renderMarkDockPanel(kind);
+      toggleHighlightCategory(kind, cat);
     });
     return btn;
+  }
+
+  async function toggleHighlightCategory(kind, cat) {
+    const field = kind === "highlight" ? "highlightTypes" : "boldTypes";
+    const defaults = kind === "highlight" ? ["quote", "fact"] : ["method", "case"];
+    const cur = new Set(settings?.[field]?.length ? settings[field] : defaults);
+    // 勾选：有就移除，没有就添加——可加可减。
+    if (cur.has(cat)) cur.delete(cat);
+    else cur.add(cat);
+    // 不允许清空成空数组：否则该类别的类型全部回退成「无视觉」，标注会消失。清空时恢复默认。
+    if (!cur.size) {
+      defaults.forEach((t) => cur.add(t));
+      showToast("该列至少保留一类，已恢复默认");
+    }
+    settings = XYD_SETTINGS.normalize({ ...settings, [field]: [...cur] });
+    await persistSettingsPatch();
+    // 类型映射只影响呈现方式；已有标注应立即重绘，不必再次调用模型。
+    renderTranscript();
+    renderMarkDockPanel(kind);
+  }
+
+  function buildDockDivider() {
+    const el = document.createElement("span");
+    el.className = "mdp-divider";
+    el.setAttribute("aria-hidden", "true");
+    return el;
+  }
+
+  function buildDockRegen(label, onClick) {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "mdp-check mdp-regen";
+    btn.append(createActionIcon("refresh"), document.createTextNode(label));
+    btn.addEventListener("click", onClick);
+    return btn;
+  }
+
+  function dockButtonFor(kind) {
+    return kind === "highlight" ? byId("markHighlightBtn")
+      : kind === "bold" ? byId("markBoldBtn")
+      : kind === "custom" ? byId("markCustomBtn")
+      : byId("transcriptLangBtn");
+  }
+
+  function setDockRunning(kind, on) {
+    dockButtonFor(kind)?.classList.toggle("is-running", Boolean(on));
+  }
+
+  async function runDockGeneration(kind, task) {
+    setDockRunning(kind, true);
+    try {
+      await task();
+    } catch (error) {
+      if (error?.message) showToast(friendlyError(error));
+    } finally {
+      setDockRunning(kind, false);
+      // dock 操作（重新生成高亮/加粗/译文、智能分析）都在原文视图进行，
+      // 结束后必须清空进度卡、隐藏全屏进度，并回到原文视图，避免摘要/时间轴卡在进度条。
+      hideTranscriptProgress();
+      clearAllPanelProgress();
+      // 恢复正常 main 层（摘要/时间轴内容），再切回原文视图。
+      if (currentDigest) showOnlyMain("digest");
+      else if (!settings?.aiApiKey) showOnlyMain("setupState");
+      else showOnlyMain("actions");
+      if (activeView !== "transcript") switchView("transcript");
+    }
+  }
+
+  function firstUnusedCompanionColor() {
+    const palette = ["#ff9500", "#34c759", "#007aff", "#ff2d55", "#af52de"];
+    const used = new Set();
+    for (const segment of transcriptSegments) {
+      for (const mark of (segment.highlights || [])) {
+        if (mark.type === "companion" && /^#[0-9a-f]{6}$/i.test(String(mark.color || ""))) used.add(mark.color.toLowerCase());
+      }
+    }
+    return palette.find((color) => !used.has(color.toLowerCase())) || palette[0];
   }
 
   async function persistSettingsPatch() {
@@ -2355,6 +2635,7 @@ sections:
     for (const value of visible) {
       const item = document.createElement("article");
       item.className = "history-item";
+      item.dataset.source = value.source || "xiaoyuzhou";
       item.dataset.episodeId = value.episodeId;
       const icon = document.createElement("span");
       icon.className = "history-item-icon";
@@ -2421,7 +2702,8 @@ sections:
         renderHistoryEntries();
         showToast("已删除记录");
       });
-      actions.append(favorite, remove);
+      actions.append(favorite);
+      if (!value.demo) actions.append(remove);
       item.append(icon, open, actions);
       root.appendChild(item);
     }
@@ -2435,11 +2717,15 @@ sections:
       entries.set(episodeId, { source: "xiaoyuzhou", favorite: false, ...(entries.get(episodeId) || {}), episodeId, ...value });
     };
     for (const item of Array.isArray(all[HISTORY_INDEX_KEY]) ? all[HISTORY_INDEX_KEY] : []) merge(item?.episodeId, item);
+    for (const [index, item] of (globalThis.XYD_DEMOS?.entries || []).entries()) {
+      merge(item.episodeId, { ...item, demo: true, hasDigest: true, transcriptCount: item.segments?.length || (item.episodeId === DEMO_EPISODE_META.id ? 1 : 0), updatedAt: Date.now() - index });
+    }
     for (const [key, value] of Object.entries(all)) {
       if (key.startsWith("xyd_digest_") && value?.digest) {
         const rest = key.slice("xyd_digest_".length);
         const isYT = rest.startsWith("yt_");
-        merge(isYT ? rest.slice(3) : rest, { hasDigest: true, source: isYT ? "youtube" : "xiaoyuzhou", updatedAt: value.savedAt || 0 });
+        const isBili = rest.startsWith("bili_");
+        merge(isYT ? rest.slice(3) : isBili ? rest.slice(5) : rest, { hasDigest: true, source: isYT ? "youtube" : isBili ? "bilibili" : "xiaoyuzhou", updatedAt: value.savedAt || 0 });
       }
       if (key.startsWith("xyd_transcript_") && Array.isArray(value) && value.length) merge(key.slice("xyd_transcript_".length), { transcriptCount: value.length });
       if (key.startsWith("xyd_notes_") && Array.isArray(value) && value.length) merge(key.slice("xyd_notes_".length), { noteCount: value.length });
@@ -2453,7 +2739,7 @@ sections:
       noteCount: readerNotes.length,
       updatedAt: entries.get(episode.id)?.updatedAt || Date.now(),
     });
-    historyEntries = [...entries.values()].sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
+    historyEntries = [...entries.values()].sort((a, b) => Number(Boolean(b.demo)) - Number(Boolean(a.demo)) || (b.updatedAt || 0) - (a.updatedAt || 0));
     renderHistoryEntries();
   }
 
@@ -2465,64 +2751,9 @@ sections:
     } else if (episode) switchView(historyReturnView);
   }
 
-  function setCompanionButtonLabel(label, showArrow = true) {
-    const button = byId("startCompanionBtn");
-    const title = document.createElement("span");
-    title.textContent = label;
-    if (!showArrow) {
-      button.replaceChildren(title);
-      return;
-    }
-    const arrow = document.createElement("span");
-    arrow.setAttribute("aria-hidden", "true");
-    arrow.textContent = "→";
-    button.replaceChildren(title, arrow);
-  }
-
-  function selectCompanion(id) {
-    selectedCompanion = COMPANIONS[id] ? id : "";
-    selectedCompanionColor = COMPANIONS[selectedCompanion]?.color || COMPANIONS.custom.color;
-    byId("companionChoices").hidden = false;
-    byId("startCompanionBtn").hidden = false;
-    byId("companionResultHeader").hidden = true;
-    byId("companionNotes").replaceChildren();
-    document.querySelectorAll(".companion-choice").forEach((button) => button.classList.toggle("selected", button.dataset.companion === selectedCompanion));
-    const persona = COMPANIONS[selectedCompanion];
-    const isCustom = selectedCompanion === "custom";
-    byId("customCompanionEditor").hidden = !isCustom;
-    byId("companionColorPicker").hidden = !selectedCompanion;
-    byId("companionColorPicker").querySelectorAll("[data-color]").forEach((button) => button.classList.toggle("selected", button.dataset.color === selectedCompanionColor));
-    const customReady = text(byId("customCompanionPrompt").value, 500).length > 0;
-    byId("startCompanionBtn").disabled = !selectedCompanion || (isCustom && !customReady);
-    byId("companionStatus").hidden = true;
-    byId("companionStatus").textContent = "";
-    if (isCustom) byId("customCompanionPrompt").focus();
-  }
-
-  function resetCompanionResult() {
-    selectedCompanion = "";
-    companionNotesState = [];
-    setAnnotationVisibility("companion", false);
-    document.querySelectorAll(".companion-choice").forEach((button) => button.classList.remove("selected"));
-    byId("companionChoices").hidden = false;
-    byId("customCompanionEditor").hidden = true;
-    byId("companionColorPicker").hidden = true;
-    byId("startCompanionBtn").hidden = false;
-    byId("startCompanionBtn").disabled = true;
-    setCompanionButtonLabel("开始共读");
-    byId("companionResultHeader").hidden = true;
-    byId("companionStatus").hidden = true;
-    byId("companionStatus").textContent = "";
-    byId("companionNotes").replaceChildren();
-  }
-
-  function buildCompanionPreview(id) {
-    if (episode?.id !== DEMO_EPISODE_META.id) return [];
-    return normalizeCompanionNotes(DEMO_COMPANION_NOTES[id] || [], selectedCompanionColor);
-  }
 
   function normalizeCompanionNotes(notes, color = selectedCompanionColor) {
-    return (Array.isArray(notes) ? notes : []).slice(0, 18).map((note) => {
+    const normalized = (Array.isArray(notes) ? notes : []).map((note) => {
       const fallbackStart = Math.max(0, Number(note?.startSeconds) || 0);
       const rawHighlights = Array.isArray(note?.highlights) && note.highlights.length
         ? note.highlights
@@ -2530,169 +2761,26 @@ sections:
       const highlights = rawHighlights.slice(0, 3).map((highlight) => ({
         startSeconds: Math.max(0, Number(highlight?.startSeconds) || fallbackStart),
         text: text(highlight?.text, 600),
-      })).filter((highlight) => highlight.text.length >= 4);
+      })).filter((highlight) => highlight.text.length >= 10 && highlight.text.length <= 220);
       return {
         startSeconds: highlights[0]?.startSeconds ?? fallbackStart,
-        title: text(note?.title, 100),
-        detail: text(note?.detail, 600),
+        title: text(note?.title, 100) || "分析",
+        detail: text(note?.detail, 600) || text(note?.title, 120),
         highlights,
         highlightText: highlights[0]?.text || "",
         color: appleCompanionColor(note?.color || color),
       };
-    }).filter((note) => note.title && note.detail && note.highlights.length);
+    }).filter((note) => note.highlights.length)
+      .sort((a, b) => a.startSeconds - b.startSeconds);
+    if (normalized.length <= 18) return normalized;
+    // 长内容不截断前 18 条，而是按整期时间均匀取样，避免分析结果只集中在开头。
+    return Array.from({ length: 18 }, (_, index) => normalized[Math.min(normalized.length - 1, Math.floor(index * normalized.length / 18))]);
   }
 
-  async function applyCompanionHighlights(notes) {
-    for (const segment of transcriptSegments) segment.highlights = (segment.highlights || []).filter((mark) => mark.type !== "companion");
-    const normalized = normalizeCompanionNotes(notes);
-    for (const note of normalized) {
-      const matched = [];
-      for (const excerpt of note.highlights) {
-        const candidates = transcriptSegments
-          .map((segment) => ({ segment, distance: Math.abs(segment.startSeconds - excerpt.startSeconds) }))
-          .filter((item) => item.segment.text.includes(excerpt.text))
-          .sort((a, b) => (a.distance <= 300 ? 0 : 1) - (b.distance <= 300 ? 0 : 1) || a.distance - b.distance);
-        const candidate = candidates[0]?.segment;
-        if (!candidate) continue;
-        const start = candidate.text.indexOf(excerpt.text);
-        const end = start + excerpt.text.length;
-        const marks = candidate.highlights || [];
-        if (!marks.some((mark) => mark.type === "companion" && mark.start === start && mark.end === end)) {
-          candidate.highlights = [...marks, { type: "companion", color: note.color || selectedCompanionColor, start, end }];
-        }
-        matched.push({ startSeconds: candidate.startSeconds, text: excerpt.text });
-      }
-      note.highlights = matched;
-      note.highlightText = matched[0]?.text || "";
-      note.startSeconds = matched[0]?.startSeconds ?? note.startSeconds;
-    }
-    await setTranscript(transcriptSegments, true);
-    return normalized.filter((note) => note.highlights.length);
-  }
-
-  function renderCompanionNotes(notes, persona, preview = false) {
-    companionNotesState = normalizeCompanionNotes(notes, selectedCompanionColor);
-    if (companionNotesState.length) setCompanionDockColor(companionNotesState[0].color || selectedCompanionColor, true);
-    const root = byId("companionNotes");
-    root.replaceChildren();
-    byId("companionChoices").hidden = true;
-    byId("customCompanionEditor").hidden = true;
-    byId("companionColorPicker").hidden = true;
-    byId("startCompanionBtn").hidden = true;
-    byId("companionResultHeader").hidden = false;
-    byId("companionResultTitle").textContent = persona.name;
-    for (const note of companionNotesState) {
-      const item = document.createElement("div");
-      item.className = preview ? "companion-note preview" : "companion-note";
-      item.style.setProperty("--companion-color", note.color || selectedCompanionColor);
-      item.tabIndex = 0;
-      const time = document.createElement("time");
-      time.textContent = formatTime(note.startSeconds);
-      const content = document.createElement("div");
-      const title = document.createElement("strong");
-      title.textContent = note.title;
-      const detail = document.createElement("p");
-      detail.textContent = note.detail;
-      content.append(title, detail);
-      const actions = document.createElement("span");
-      actions.className = "companion-note-actions";
-      const save = document.createElement("button");
-      save.type = "button";
-      save.title = "收藏到笔记";
-      save.setAttribute("aria-label", "收藏到笔记");
-      save.appendChild(createActionIcon("note"));
-      save.addEventListener("click", async (event) => {
-        event.stopPropagation();
-        await addReaderNote({ kind: "quote", title: `${persona.name} · ${note.title}`, sourceText: note.highlights.map((highlight) => highlight.text).join("\n\n"), body: note.detail, color: note.color || selectedCompanionColor, startSeconds: note.startSeconds, sourceId: `companion:${selectedCompanion}:${note.startSeconds}:${note.title}` });
-      });
-      const jump = document.createElement("button");
-      jump.type = "button";
-      jump.title = "回到原文";
-      jump.setAttribute("aria-label", "回到原文");
-      jump.appendChild(createActionIcon("source"));
-      actions.append(save, jump);
-      item.append(time, content, actions);
-      item.addEventListener("click", () => {
-        setCompanionSheet(false);
-        jumpToTranscript(note.startSeconds);
-      });
-      root.appendChild(item);
-    }
-  }
-
-  async function runCompanion() {
-    const basePersona = COMPANIONS[selectedCompanion];
-    if (!basePersona || !transcriptSegments.length) return;
-    const companionId = selectedCompanion;
-    const customGoal = text(byId("customCompanionPrompt").value, 500);
-    if (selectedCompanion === "custom" && !customGoal) {
-      showToast("先告诉搭子，这次想重点关注什么");
-      return;
-    }
-    const persona = selectedCompanion === "custom"
-      ? { ...basePersona, prompt: `${basePersona.prompt}读者本次的关注目标是：${customGoal}` }
-      : basePersona;
-    if (!settings?.aiApiKey) {
-      showToast("先在设置中填写 DeepSeek API Key");
-      return;
-    }
-    const button = byId("startCompanionBtn");
-    button.disabled = true;
-    setCompanionButtonLabel(`${persona.name}正在阅读…`, false);
-    let previewNotes = [];
-    try {
-      previewNotes = await applyCompanionHighlights(buildCompanionPreview(selectedCompanion));
-      if (previewNotes.length) {
-        setAnnotationVisibility("companion", true);
-        renderCompanionNotes(previewNotes, persona, true);
-      }
-      else {
-        byId("companionResultHeader").hidden = false;
-        byId("companionResultTitle").textContent = persona.name;
-      }
-      byId("companionStatus").classList.add("reading");
-      byId("companionStatus").hidden = false;
-      byId("companionStatus").textContent = "正在继续阅读…";
-      const contentStart = detectedContentStart();
-      const material = transcriptSegments
-        .filter((segment) => segment.startSeconds >= contentStart)
-        .map((segment) => `[${formatTime(segment.startSeconds)}] ${segment.text}`)
-        .join("\n")
-        .slice(0, 110000);
-      const result = await callDeepSeek(
-        `你是播客共读编辑。${persona.prompt}\n\n执行规则：\n1. 先通读后按“与角色相关度、信息增量、证据完整度、可复用性”各1–5分在心里排序，只输出总分至少15分的5–12条；不足5条就如实少选。\n2. 笔记要分布在整期正文，但不能为了分布或数量选择广告、名单和空话。\n3. 每条可精确划一句，也可划2–3处相邻或分开的原文。只选支撑旁注的最小充分证据：观点划一句，事件可划完整动作链。\n4. highlights.text 必须是逐字稿中8–400字的连续原文，一字不改；startSeconds 填该原文附近时间。\n5. title 具体、有角色口吻；detail 用2–4句完成“判断—证据—为什么重要”，禁用‘值得关注、很有启发、体现了、揭示了’等空话。\n6. 不得发明人物、数字、因果和立场；广告价格、节目期数、嘉宾名单即使有数字也不得入选。\n只返回 JSON：{"notes":[{"title":"","detail":"","highlights":[{"startSeconds":0,"text":""}]}]}。${configurablePrompt("companionPrompt")}`,
-        `节目：${episode.title}\n\n逐字稿：\n${material}`,
-        4500,
-      );
-      if (selectedCompanion !== companionId) return;
-      const notes = normalizeCompanionNotes(result?.notes, selectedCompanionColor);
-      if (notes.length) {
-        const appliedNotes = await applyCompanionHighlights(notes);
-        if (appliedNotes.length) renderCompanionNotes(appliedNotes, persona);
-        else if (previewNotes.length) {
-          const restoredPreview = await applyCompanionHighlights(previewNotes);
-          renderCompanionNotes(restoredPreview, persona);
-          showToast("新笔记没有精确命中原文，已保留当前笔记");
-        }
-      } else if (!previewNotes.length) {
-        showToast("这次没找到足够相关的内容");
-      }
-      setAnnotationVisibility("companion", true);
-    } catch (error) {
-      if (selectedCompanion !== companionId) return;
-      showToast(previewNotes.length ? "这次没读完，已保留当前笔记" : error?.message || "这次没读完，请稍后重试");
-    } finally {
-      if (selectedCompanion === companionId) {
-        byId("companionStatus").hidden = true;
-        byId("companionStatus").classList.remove("reading");
-        byId("companionStatus").textContent = "";
-        button.disabled = false;
-        setCompanionButtonLabel("重新生成共读笔记");
-      }
-    }
-  }
 
   let customMarkColor = "#ff9500";
+  let pendingCustomColor = "";
+  let pendingCustomDirection = "";
   let customMarkResult = null;
   function customMarkGoal() {
     const dir = settings?.customDirection || "";
@@ -2706,56 +2794,81 @@ sections:
     if (!settings?.aiApiKey) return showToast("先在设置中填写 DeepSeek API Key");
     const dir = settings?.customDirection || "";
     if (!dir) return showToast("请先选择一个分析方向");
-    customMarkColor = settings?.customColor || customMarkColor;
     const goal = customMarkGoal();
     if (!goal) return showToast("请先填写自定义方向内容");
+    // 用当前选定的颜色（默认是面板给出的建议色），而不是旧的记忆值。
+    customMarkColor = pendingCustomColor || settings?.customColor || "#ff9500";
     showToast("正在智能分析…");
+    // 不清空旧标注：让 applyCustomHighlights 先匹配、成功后才替换，失败则保留旧划线。
+    customMarkResult = null;
     const contentStart = detectedContentStart();
-    const material = transcriptSegments
-      .filter((segment) => segment.startSeconds >= contentStart)
-      .map((segment) => `[${formatTime(segment.startSeconds)}] ${segment.text}`)
-      .join("\n")
-      .slice(0, 110000);
-    const result = await callDeepSeek(
-      `你是中文播客精读编辑。只返回 JSON：{"notes":[{"title":"","detail":"","highlights":[{"startSeconds":0,"text":""}]}]}。
+    const material = transcriptSegments.filter((segment) => segment.startSeconds >= contentStart);
+    // 分块更小、聚焦，让模型围绕目标找得更全；每块覆盖短一点，避免走马观花。
+    const chunks = XYD_PIPELINE.planChapterChunks(material, { maxChars: 7200, singleChars: 9000, overlapChars: 240, maxSeconds: 720 });
+    const collected = [];
+    const system = `你是跨语言长内容精读编辑。只返回 JSON：{"notes":[{"title":"","detail":"","highlights":[{"startSeconds":0,"text":""}]}]}。
 规则：
-1. 只划与目标高度相关、能改变理解的原文，8–400字连续原文，一字不改；startSeconds 填原文附近时间。
+1. 只划与目标高度相关、能改变理解的原文；highlight text 必须是一句完整、可独立读懂的话，最短 12 字，最长 200 字，逐字复制不改字；startSeconds 填原文附近时间。
 2. 目标：${goal}。
-3. 不得发明人物、数字、因果；广告价格、节目期数、嘉宾名单即使有数字也不得入选。
-4. 只返回 JSON。${configurablePrompt("highlightPrompt")}`,
-      `节目：${episode.title}\n\n逐字稿：\n${material}`,
-      4500,
-    );
-    const notes = normalizeCompanionNotes(Array.isArray(result?.notes) ? result.notes : [], customMarkColor);
+3. 宁缺毋滥：只标完整、有信息量、能支撑判断的句子。严禁标 4–8 字的语气碎片（如“小红书的确”“这么一个”“嗯嗯”）、半截话、过渡词。
+4. 不得发明人物、数字、因果；广告价格、节目期数、嘉宾名单即使有数字也不得入选。
+5. 每条附 1 条就能回到原文核对的证据；严禁凑数。
+6. 只返回 JSON。${configurablePrompt("highlightPrompt")}`;
+    for (let index = 0; index < chunks.length; index += 1) {
+      // 用原文视图内的进度条显示（不切全屏 main），不影响摘要/时间轴视图。
+      setTranscriptProgress(`正在智能分析 ${index + 1}/${chunks.length}`, `围绕「${goal.slice(0, 24)}」查找原文证据。`);
+      try {
+        const result = await callDeepSeek(system, `节目：${episode.title}\n范围：${formatTime(chunks[index].startSeconds)}–${formatTime(chunks[index].endSeconds)}\n\n逐字稿：\n${chunks[index].text}`, 5000);
+        collected.push(...(Array.isArray(result?.notes) ? result.notes : []));
+      } catch (_error) { /* 单个分块失败不丢掉其余分析结果。 */ }
+    }
+    const notes = normalizeCompanionNotes(collected, customMarkColor);
     const applied = await applyCustomHighlights(notes, dir);
     if (!applied) { showToast("没有精确命中原文的段落，请调整方向后重试"); return; }
     const label = ({ ai: "AI知识", product: "产品设计", business: "商业化思维", custom: (settings?.customGoal || "自定义").trim().slice(0, 10) || "自定义" })[dir];
     customMarkResult = { key: dir, label, color: customMarkColor, appliedCount: applied };
     setAnnotationVisibility("companion", true);
     setCompanionDockColor(customMarkColor, true);
-    renderMarkDockPanel("custom");
+    const panel = byId("markDockPanel");
+    if (panel && !panel.hidden && panel.dataset.kind === "custom") renderMarkDockPanel("custom");
     renderTranscript();
     showToast(`已按「${label}」分析出 ${applied} 条`);
+    // 本次分析结束，清掉待用颜色，下次进入智能分析时重新给出未被占用的默认色。
+    pendingCustomColor = "";
   }
 
   async function applyCustomHighlights(notes, key) {
-    for (const segment of transcriptSegments) segment.highlights = (segment.highlights || []).filter((mark) => !(mark.type === "companion" && mark.customKey === key));
     const normalized = normalizeCompanionNotes(notes);
-    let count = 0;
+    // 先在内存里收集命中原文的新标注；全部匹配完、且有命中时才清空该方向旧标注，
+    // 避免「先清空后匹配失败」导致旧划线消失、又没有新增。
+    const pendingMarks = [];
     for (const note of normalized) {
       for (const excerpt of note.highlights) {
         const candidates = transcriptSegments
           .map((segment) => ({ segment, distance: Math.abs(segment.startSeconds - excerpt.startSeconds) }))
-          .filter((item) => item.segment.text.includes(excerpt.text))
-          .sort((a, b) => (a.distance <= 300 ? 0 : 1) - (b.distance <= 300 ? 0 : 1) || a.distance - b.distance);
-        const candidate = candidates[0]?.segment;
-        if (!candidate) continue;
-        const start = candidate.text.indexOf(excerpt.text);
-        const end = start + excerpt.text.length;
-        const marks = candidate.highlights || [];
-        if (!marks.some((mark) => mark.type === "companion" && mark.customKey === key && mark.start === start && mark.end === end)) {
-          candidate.highlights = [...marks, { type: "companion", color: note.color, customKey: key, custom: true, start, end }];
+          .filter((item) => item.distance <= 300)
+          .sort((a, b) => a.distance - b.distance);
+        let placed = false;
+        for (const candidate of candidates) {
+          const range = locatePhrase(candidate.segment.text, excerpt.text);
+          if (!range) continue;
+          // 防止 LCS 降级把标注截成 4–6 字碎片；太短的匹配视为定位失败，丢弃。
+          if (range.end - range.start < 8) continue;
+          pendingMarks.push({ segment: candidate.segment, start: range.start, end: range.end, color: note.color });
+          placed = true;
+          break;
         }
+      }
+    }
+    // 没有命中：不改造原文，保留旧标注。
+    if (!pendingMarks.length) return 0;
+    // 命中：先清空该方向旧标注，再写入新标注（去重）。
+    for (const segment of transcriptSegments) segment.highlights = (segment.highlights || []).filter((mark) => !(mark.type === "companion" && mark.customKey === key));
+    let count = 0;
+    for (const m of pendingMarks) {
+      const marks = m.segment.highlights || [];
+      if (!marks.some((mark) => mark.type === "companion" && mark.customKey === key && mark.start === m.start && mark.end === m.end)) {
+        m.segment.highlights = [...marks, { type: "companion", color: m.color, customKey: key, custom: true, start: m.start, end: m.end }];
         count += 1;
       }
     }
@@ -2765,7 +2878,9 @@ sections:
 
   async function regenerateCustomMark() {
     if (!customMarkResult) return;
-    settings = XYD_SETTINGS.normalize({ ...settings, customDirection: customMarkResult.key });
+    // 重新生成沿用当前方向的颜色，避免更迭成别的颜色。
+    settings = XYD_SETTINGS.normalize({ ...settings, customDirection: customMarkResult.key, customColor: customMarkResult.color });
+    customMarkColor = customMarkResult.color;
     await runCustomMark();
   }
 
@@ -2776,7 +2891,8 @@ sections:
     await setTranscript(transcriptSegments, true);
     customMarkResult = null;
     renderTranscript();
-    renderMarkDockPanel("custom");
+    const panel = byId("markDockPanel");
+    if (panel && !panel.hidden && panel.dataset.kind === "custom") renderMarkDockPanel("custom");
     showToast("已删除该方向分析");
   }
   function renderList(containerId, items, renderer, emptyText) {
@@ -2789,13 +2905,18 @@ sections:
   }
 
   function appendInlineMarkdown(element, content) {
-    const parts = String(content || "").split(/(\*\*[^*]+\*\*)/g);
+    const parts = String(content || "").split(/(\*\*[^*]+\*\*|==[^=]+==)/g);
     for (const part of parts) {
       const bold = part.match(/^\*\*(.+)\*\*$/);
+      const highlighted = part.match(/^==(.+)==$/);
       if (bold) {
         const strong = document.createElement("strong");
         strong.textContent = bold[1];
         element.appendChild(strong);
+      } else if (highlighted) {
+        const mark = document.createElement("mark");
+        mark.textContent = highlighted[1];
+        element.appendChild(mark);
       } else if (part) element.appendChild(document.createTextNode(part));
     }
   }
@@ -2854,7 +2975,8 @@ sections:
     if (overview?.opening) {
       const opening = document.createElement("p");
       opening.className = "overview-opening";
-      appendInlineMarkdown(opening, overview.opening);
+      // opening 只是总起，不应整段被 == 高亮铺满；若被整段包裹则先撤掉外层标记。
+      appendInlineMarkdown(opening, XYD_PIPELINE.normalizeOpeningHighlight(overview.opening));
       root.appendChild(opening);
     }
     for (const section of overview?.sections || []) {
@@ -2877,15 +2999,15 @@ sections:
     if (view === "timeline") {
       return currentDigest.chapters.map((chapter) => [
         `## ${formatTime(chapter.startSeconds)} ${chapter.title}`,
-        chapter.summary || chapter.detail || "",
+        chapter.detail || chapter.summary || "",
         ...(chapter.points || []).map((point) => `- ${point}`),
       ].filter(Boolean).join("\n")).join("\n\n");
     }
     if (currentDigest.overview?.sections?.length) {
-      return [currentDigest.overview.opening, ...currentDigest.overview.sections.flatMap((section) => [
+      return [currentDigest.overview.opening, ...currentDigest.overview.sections.map((section) => [
         `## ${section.heading}`,
         ...(section.points || []).map((point) => `- ${point}`),
-      ])].filter(Boolean).join("\n\n");
+      ].join("\n"))].filter(Boolean).join("\n\n");
     }
     return currentDigest.quickRead || "";
   }
@@ -2895,26 +3017,83 @@ sections:
   }
 
   function summaryPlainText() {
-    return summaryMarkdown().replace(/^#{1,6}\s+/gm, "").replace(/^[-*]\s+/gm, "· ").replace(/\*\*([^*]+)\*\*/g, "$1").replace(/\n{3,}/g, "\n\n").trim();
+    return XYD_PIPELINE.markdownToPlainText(summaryMarkdown());
+  }
+
+  async function copySummaryRich() {
+    const title = episode?.title || "小黄笔";
+    const sourceUrl = episode?.pageUrl || "";
+    const markdown = currentExportMarkdown();
+    if (!markdown) return showToast("当前页面还没有可复制的内容");
+    const plain = XYD_PIPELINE.markdownToPlainText(markdown);
+    if (activeView === "transcript") {
+      // 原文视图复制富文本：保留黄高亮/加粗标注。
+      const html = currentExportHtml(title, sourceUrl);
+      return copyRich(plain, html, "已复制带格式原文");
+    }
+    const html = XYD_PIPELINE.markdownToHtml(buildExportDocument(markdown, title, sourceUrl), title, sourceUrl ? { source: sourceUrl, sourceLabel: sourceUrl } : null);
+    return copyRich(plain, html, "已复制带格式内容");
+  }
+
+  // 尝试写富文本（plain + html）到剪贴板，失败则降级为纯文本。
+  async function copyRich(plain, html, okMessage) {
+    try {
+      if (navigator.clipboard?.write && typeof ClipboardItem !== "undefined") {
+        await navigator.clipboard.write([new ClipboardItem({
+          "text/plain": new Blob([plain], { type: "text/plain" }),
+          "text/html": new Blob([html], { type: "text/html" }),
+        })]);
+        return showToast(okMessage);
+      }
+    } catch (_error) { /* 降级为 Markdown 文本 */ }
+    return copyText(plain);
   }
 
   function downloadSummary(content, extension, mime) {
-    const url = URL.createObjectURL(new Blob([content], { type: mime }));
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `${safeFileName(episode?.title)}-${activeSummaryView === "timeline" ? "时间轴摘要" : "要点精读"}.${extension}`;
-    link.click();
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    const fileName = `${safeFileName(episode?.title)}-${activeSummaryView === "timeline" ? "时间轴摘要" : "要点精读"}.${extension}`;
+    const blob = new Blob([content], { type: mime });
+    const url = URL.createObjectURL(blob);
+    const fallback = () => {
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = fileName;
+      link.style.display = "none";
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      showToast("已开始下载");
+    };
+    // 优先 chrome.downloads（扩展内下载可靠，MV3 返回 Promise）；失败时回退 <a> 下载。
+    if (typeof chrome?.downloads?.download === "function") {
+      const result = chrome.downloads.download({ url, filename: fileName, saveAs: true });
+      if (result && typeof result.then === "function") {
+        result.then(() => { URL.revokeObjectURL(url); showToast("已开始下载"); })
+          .catch(() => { URL.revokeObjectURL(url); fallback(); });
+      } else {
+        URL.revokeObjectURL(url);
+        fallback();
+      }
+      return;
+    }
+    fallback();
   }
 
   function exportCurrentSummary(format) {
-    const markdown = summaryMarkdown();
-    if (!markdown) return showToast("还没有可导出的摘要");
-    if (format === "txt") return downloadSummary(markdown.replace(/^#{1,6}\s+/gm, "").replace(/^[-*]\s+/gm, "· "), "txt", "text/plain;charset=utf-8");
-    if (format === "md") return downloadSummary(markdown, "md", "text/markdown;charset=utf-8");
-    const escaped = markdown.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-    const body = escaped.replace(/^## (.+)$/gm, "<h2>$1</h2>").replace(/^[-*] (.+)$/gm, "<p>• $1</p>").replace(/\n\n/g, "<br>");
-    const html = `<!doctype html><html lang="zh-CN"><meta charset="utf-8"><title>${safeFileName(episode?.title)}</title><style>body{max-width:760px;margin:56px auto;font:17px/1.75 -apple-system,BlinkMacSystemFont,'PingFang SC',sans-serif;color:#1d1d1f}h1{font-size:30px}h2{margin-top:30px;font-size:21px}p{margin:8px 0}</style><h1>${safeFileName(episode?.title)}</h1>${body}</html>`;
+    // 按当前视图导出对应内容。富文本（web/doc/pdf）保留黄高亮/加粗/·递进，纯文本（txt/md）文字降级。
+    const title = episode?.title || "小黄笔";
+    const sourceUrl = episode?.pageUrl || "";
+    const bodyMarkdown = currentExportMarkdown();
+    if (!bodyMarkdown) return showToast("当前页面还没有可导出的内容");
+    if (format === "txt") {
+      const text = XYD_PIPELINE.markdownToPlainText(buildExportDocument(bodyMarkdown, title, sourceUrl));
+      return downloadSummary(text, "txt", "text/plain;charset=utf-8");
+    }
+    if (format === "md") {
+      return downloadSummary(buildExportDocument(bodyMarkdown, title, sourceUrl), "md", "text/markdown;charset=utf-8");
+    }
+    // 富文本：用 HTML 渲染，保留标注视觉 + 来源链接。
+    const html = currentExportHtml(title, sourceUrl);
     if (format === "web") return downloadSummary(html, "html", "text/html;charset=utf-8");
     if (format === "doc") return downloadSummary(html, "doc", "application/msword;charset=utf-8");
     const printWindow = window.open("", "_blank");
@@ -2922,6 +3101,108 @@ sections:
     printWindow.document.write(html);
     printWindow.document.close();
     printWindow.addEventListener("load", () => printWindow.print(), { once: true });
+  }
+
+  // 0) 当前视图的导出 markdown（不含标题/来源）。
+  function currentExportMarkdown() {
+    if (activeView === "transcript") return transcriptMarkdown();
+    if (activeView === "notes") return notesMarkdown();
+    return summaryMarkdown();
+  }
+
+  // 1) 组装导出文档：标题 + 正文 + 来源。
+  function buildExportDocument(bodyMarkdown, title, sourceUrl) {
+    const source = sourceUrl ? `\n\n来源：${sourceUrl}` : "";
+    return `# ${title}${source}\n\n${bodyMarkdown}`;
+  }
+
+  // 2) 原文 → markdown（保留时间戳/说话人；标注用 ==黄== 和 **加粗** 标记）。
+  function transcriptMarkdown() {
+    const contentStart = detectedContentStart();
+    const segs = transcriptSegments.filter((s) => s.startSeconds >= contentStart);
+    if (!segs.length) return "";
+    const lines = [];
+    for (const seg of segs) {
+      const t = formatTime(seg.startSeconds);
+      const speaker = seg.speaker ? `${seg.speaker}：` : "";
+      const text = annotateMarkdownText(seg.text, seg.highlights || []);
+      lines.push(`**[${t}]** ${speaker}${text}`);
+    }
+    return lines.join("\n\n");
+  }
+
+  // 3) 笔记 → markdown。
+  function notesMarkdown() {
+    if (!readerNotes.length) return "";
+    const parts = ["## 笔记"];
+    for (const note of readerNotes) {
+      const t = note.startSeconds != null ? formatTime(note.startSeconds) : "";
+      const title = note.title ? `**${note.title}**${t ? ` (${t})` : ""}` : t;
+      const body = [note.sourceText, note.body].filter(Boolean).map((v) => v.trim()).join("\n\n");
+      parts.push(`- ${title}${body ? `\n  ${body}` : ""}`);
+    }
+    return parts.join("\n\n");
+  }
+
+  // 4) 把一段原文按 highlights 加标注标记（==黄==、**加粗**），保留上下文。
+  function annotateMarkdownText(text, highlights) {
+    if (!highlights?.length) return text;
+    const boundaries = [...new Set([0, text.length, ...highlights.flatMap((m) => [m.start, m.end])])].sort((a, b) => a - b);
+    let out = "";
+    for (let i = 0; i < boundaries.length - 1; i += 1) {
+      const start = boundaries[i];
+      const end = boundaries[i + 1];
+      if (end <= start) continue;
+      const chunk = text.slice(start, end);
+      const active = highlights.filter((m) => m.start <= start && m.end >= end);
+      const bold = active.some((m) => ["method", "case", "user-bold"].includes(m?.type));
+      const yellow = active.some((m) => ["quote", "fact", "user-highlight"].includes(m?.type));
+      let html = chunk;
+      if (yellow) html = `==${html}==`;
+      if (bold) html = `**${html}**`;
+      out += html;
+    }
+    return out;
+  }
+
+  // 5) 当前视图的富文本 HTML（保留标注视觉 + 来源链接）。
+  function currentExportHtml(title, sourceUrl) {
+    const source = sourceUrl ? { source: sourceUrl, sourceLabel: episode?.pageUrl || "" } : null;
+    if (activeView === "transcript") return transcriptToHtml(title, source);
+    const markdown = currentExportMarkdown();
+    return XYD_PIPELINE.markdownToHtml(markdown, title, source);
+  }
+
+  // 6) 原文 → 富文本 HTML（用 highlightTextToHtml 保留 <mark>/<strong>）。
+  function transcriptToHtml(title, source) {
+    const contentStart = detectedContentStart();
+    const segs = transcriptSegments.filter((s) => s.startSeconds >= contentStart);
+    const body = segs.map((seg) => {
+      const t = formatTime(seg.startSeconds);
+      const speaker = seg.speaker ? ` ${escapeForHtml(seg.speaker)}` : "";
+      const html = XYD_PIPELINE.highlightTextToHtml(seg.text, seg.highlights || []);
+      // 时间戳 / 作者 / 段落放在一起：以一行元信息开头，下方是正文。
+      return `<section class="entry"><div class="meta">${t}${speaker}</div><div class="text">${html}</div></section>`;
+    }).join("");
+    const sourceHtml = source ? `<p class="source"><a href="${escapeForHtml(source.source)}">来源：${escapeForHtml(source.sourceLabel || source.source)}</a></p>` : "";
+    return `<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><title>${escapeForHtml(title)}</title><style>
+*{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+body{max-width:760px;margin:32px auto;padding:0 18px;font:13.5px/1.7 -apple-system,BlinkMacSystemFont,'PingFang SC','Hiragino Sans GB','Microsoft YaHei',sans-serif;color:#1d1d1f;word-break:break-word}
+h1{font-size:21px;line-height:1.35;margin:0 0 14px;font-weight:800;letter-spacing:-.02em}
+.source{color:#8e8e93;font-size:12px;margin-bottom:16px}
+.source a{color:#8e8e93;text-decoration:none;border-bottom:1px solid #d0d0d0}
+.entry{margin:0 0 12px}
+.meta{color:#8e8e93;font-size:11px;font-weight:600;font-variant-numeric:tabular-nums;line-height:1.4;margin-bottom:2px}
+.text{font-size:13.5px;line-height:1.7}
+mark{background:#ffe769;padding:0 .1em;border-radius:2px}
+strong{font-weight:700}
+@media print{body{margin:0 auto;font-size:12.5px}mark{background:#ffe769!important}}
+</style></head><body><h1>${escapeForHtml(title)}</h1>${sourceHtml}${body}</body></html>`;
+  }
+
+  // HTML 转义（配合导出用）。
+  function escapeForHtml(value) {
+    return String(value || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
   }
 
   function summaryLengthLabel(value) {
@@ -2965,6 +3246,7 @@ sections:
   function renderDigest(value) {
     const digest = normalizeDigest(value, episode.duration);
     currentDigest = digest;
+    clearAllPanelProgress();
     syncSummaryControls();
     if (digest.overview?.sections?.length) renderOverview(digest.overview);
     else renderDocumentOutline(digest.quickRead);
@@ -2999,9 +3281,14 @@ sections:
       });
       actions.appendChild(note);
       const points = Array.isArray(item.points) ? item.points.filter(Boolean) : [];
-      let body = null;
+      header.append(actions);
+      el.append(header);
+      // 一级内容（深灰），「展开/收起」内联跟随在文字末尾（不是右上角，也不是换行到下方）。
+      const detailText = text(item.detail || item.summary || "", 3500);
+      let detailBody = null;
+      let expand = null;
       if (points.length) {
-        const expand = document.createElement("button"); expand.type = "button"; expand.className = "chapter-expand"; expand.setAttribute("aria-expanded", "false");
+        expand = document.createElement("button"); expand.type = "button"; expand.className = "chapter-expand"; expand.setAttribute("aria-expanded", "false");
         const caret = document.createElementNS("http://www.w3.org/2000/svg", "svg");
         caret.setAttribute("viewBox", "0 0 24 24");
         caret.setAttribute("class", "tabler-icon chapter-expand-caret");
@@ -3011,70 +3298,62 @@ sections:
         caret.appendChild(caretPath);
         const expandLabel = document.createElement("span"); expandLabel.textContent = "展开";
         expand.append(caret, expandLabel);
-        body = document.createElement("div"); body.className = "chapter-detail-body"; body.hidden = true;
+        detailBody = document.createElement("div"); detailBody.className = "chapter-detail-body"; detailBody.hidden = true;
         const list = document.createElement("ul"); list.className = "chapter-detail-list chapter-detail-points";
         for (const point of points) {
           const li = document.createElement("li");
           appendInlineMarkdown(li, point);
           list.appendChild(li);
         }
-        body.appendChild(list);
+        detailBody.appendChild(list);
         expand.addEventListener("click", (event) => {
           event.stopPropagation();
-          const open = body.hidden;
-          body.hidden = !open;
-          expand.setAttribute("aria-expanded", String(!open));
-          expandLabel.textContent = open ? "收起" : "展开";
+          // body.hidden 翻转后，旧的 hidden 值就是新的展开态；用它设置 aria-expanded，
+          // 使 CSS 的 .chapter-expand[aria-expanded="true"] 正确驱动小三角旋转。
+          const wasCollapsed = detailBody.hidden;
+          detailBody.hidden = !wasCollapsed;
+          expand.setAttribute("aria-expanded", String(wasCollapsed));
+          expandLabel.textContent = wasCollapsed ? "收起" : "展开";
         });
-        actions.appendChild(expand);
       }
-      header.append(actions);
-      el.append(header);
-      if (item.detail) {
-        // detail 内若用 markdown 圆点（- / · ）分点，拆成黄色圆点列表；否则整体作为一段正文。
-        const detailText = text(item.detail, 3500);
-        const lines = detailText.split("\n").map((line) => line.trim()).filter(Boolean);
-        const bulletLines = lines.filter((line) => /^[-*•·]\s+/.test(line));
-        if (bulletLines.length > 1) {
-          const list = document.createElement("ul"); list.className = "chapter-detail-list";
-          for (const line of lines) {
-            const bullet = line.match(/^[-*•·]\s+(.+)$/);
-            const li = document.createElement("li");
-            li.textContent = bullet ? bullet[1].trim() : line;
-            list.appendChild(li);
-          }
-          el.appendChild(list);
-        } else {
-          const pd = document.createElement("p"); pd.className = "chapter-detail-text"; pd.textContent = detailText;
-          el.appendChild(pd);
-        }
+      // 一级内容：段落文字 + 末尾内联的展开/收起（有文字就做块，按钮紧跟最后一个字）。
+      if (detailText) {
+        const pd = document.createElement("p"); pd.className = "chapter-detail-text"; pd.textContent = detailText;
+        if (expand) pd.appendChild(expand);
+        el.append(pd);
+      } else if (expand) {
+        el.append(expand);
       }
-      if (body) el.append(body);
+      if (detailBody) el.append(detailBody);
       return el;
     }, "没有可用章节。");
     activeChapterIndex = -1;
     activeRailIndex = -1;
     renderTranscript();
     showOnlyMain("digest");
-    switchView("summary");
     return digest;
   }
 
   async function run(mode = "full", options = {}) {
     lastMode = mode;
+    isGenerating = true;
     try {
       const latestSettings = await chrome.storage.local.get(XYD_SETTINGS.STORAGE_KEY);
       settings = XYD_SETTINGS.normalize(latestSettings[XYD_SETTINGS.STORAGE_KEY]);
       if (!settings.aiApiKey) throw new Error("请先在设置中填写 DeepSeek API Key。");
-      if (mode === "full" && settings.asrProvider === "supadata" && !settings.supadataApiKey) throw new Error("完整精读需要 Supadata API Key。");
-      if (mode === "full" && settings.asrProvider === "aliyun" && !settings.dashscopeApiKey) throw new Error("完整精读需要阿里云百炼 DashScope API Key。");
+      if (mode === "full" && currentPlatformId() === "youtube" && !settings.supadataApiKey) throw new Error("YouTube 字幕需要 Supadata API Key。");
+      if (mode === "full" && currentPlatformId() !== "youtube" && currentPlatformId() !== "bilibili" && !settings.dashscopeApiKey) throw new Error("完整精读需要阿里云百炼 DashScope API Key。");
       if (!episode) throw new Error("没有读取到当前单集，请回到小宇宙单集页面后重试。");
       const digest = renderDigest(normalizeDigest(await fullDigest(Boolean(options.forceAsr)), episode.duration));
       await chrome.storage.local.set({ [XYD_PLATFORM.storageKey(currentPlatformId(), episode.id)]: { digest, mode: "full", savedAt: Date.now() } });
       await touchHistory({ hasDigest: true });
-        await recordProgressStage();
+      await recordProgressStage();
       progressStageName = "";
     } catch (error) { showError(error); }
+    finally {
+      isGenerating = false;
+      hideTranscriptProgress();
+    }
   }
 
   async function persistDigestToStorage(digest) {
@@ -3108,6 +3387,25 @@ sections:
     if (platform.id === "youtube") {
       const player = XYD_PLATFORM.youtubePlayerResponseFromHtml(html);
       return platform.normalizePageData(player, pageUrl);
+    }
+    if (platform.id === "bilibili") {
+      const bv = XYD_PLATFORM.bilibiliIdFromUrl(pageUrl).split(":p")[0];
+      if (bv) {
+        const viewUrl = `https://api.bilibili.com/x/web-interface/view?bvid=${encodeURIComponent(bv)}`;
+        const viewResponse = await fetch(viewUrl, { credentials: "include", headers: { Accept: "application/json" } });
+        if (viewResponse.ok) {
+          const view = await viewResponse.json();
+          const normalized = platform.normalizePageData(view, pageUrl);
+          if (normalized) {
+            const info = view?.data || {};
+            normalized.bvid = String(info.bvid || bv);
+            normalized.aid = Number(info.aid || 0);
+            normalized.cid = Math.max(0, Number(info.cid || 0));
+            return normalized;
+          }
+        }
+      }
+      return null;
     }
     const documentNode = new DOMParser().parseFromString(html, "text/html");
     try {
@@ -3198,7 +3496,7 @@ sections:
     byId("profileSummaryLength").addEventListener("change", saveReadingPreferences);
     byId("profileWritingStyle").addEventListener("change", saveReadingPreferences);
     document.querySelector(".focus-chips").addEventListener("change", saveReadingPreferences);
-    ["profileTranscriptPrompt", "profileSummaryPrompt", "profileHighlightPrompt", "profileCompanionPrompt"].forEach((id) => byId(id).addEventListener("input", saveReadingPreferences));
+    ["profileTranscriptPrompt", "profileSummaryPrompt", "profileHighlightPrompt"].forEach((id) => byId(id).addEventListener("input", saveReadingPreferences));
     document.querySelectorAll(".prompt-reveal").forEach((button) => button.addEventListener("click", () => {
       const pre = document.getElementById(button.dataset.prompt);
       if (!pre) return;
@@ -3252,7 +3550,7 @@ sections:
     byId("transcriptTab").addEventListener("click", () => switchView("transcript"));
     byId("timelineTab").addEventListener("click", () => switchView("timeline"));
     byId("notesTab").addEventListener("click", () => switchView("notes"));
-    byId("copySummaryBtn").addEventListener("click", () => copyText(summaryMarkdown()));
+    byId("copySummaryBtn").addEventListener("click", copySummaryRich);
     const toggleSummaryPopover = (id, triggerId) => {
       const panel = byId(id);
       const open = panel.hidden;
@@ -3283,7 +3581,13 @@ sections:
       byId("summaryLengthPanel").hidden = true;
       byId("summaryLengthToolbar").setAttribute("aria-expanded", "false");
       syncSummaryLengthToolbar();
-      showToast("已保存");
+      // 切换档位立即按当前配置重新生成摘要（速读总览），不再要求额外点「重新生成」。
+      if (currentDigest?.chapters?.length) {
+        showToast(`已切换为${summaryLengthLabel(button.dataset.length)}，正在重新生成…`);
+        regenerateDigestPart("overview");
+      } else {
+        showToast(`已保存${summaryLengthLabel(button.dataset.length)}，完成精读后生效`);
+      }
     });
     byId("summaryExportMenu").addEventListener("click", (event) => {
       const button = event.target.closest("[data-export]");
@@ -3295,6 +3599,8 @@ sections:
     ["summaryAutoGenerateToggle", "summaryAutoTranslateToggle", "summaryLanguageSelect"].forEach((id) => byId(id).addEventListener("change", saveSummaryControls));
     document.addEventListener("pointerdown", (event) => {
       if (event.target.closest(".digest-toolbar")) return;
+      // 点击落在各个弹出面板内部时不隐藏它们，否则菜单项的 click 会被 pointerdown 抢先隐藏而丢失。
+      if (event.target.closest("#summaryExportMenu, #summarySettingsPanel, #summaryLengthPanel")) return;
       byId("summaryExportMenu").hidden = true;
       byId("summarySettingsPanel").hidden = true;
       byId("summaryLengthPanel").hidden = true;
@@ -3361,10 +3667,11 @@ sections:
     if (!episode) {
       try { episode = await fetchEpisodeFromPage(tab?.url); } catch (_error) {}
     }
-    if (!episode && activeEpisodeId === DEMO_EPISODE_META.id) {
-      episode = { ...DEMO_EPISODE_META, pageUrl: String(tab?.url || "").split("?")[0] };
+    const demoMeta = globalThis.XYD_DEMOS?.find?.(activeEpisodeId);
+    if (!episode && demoMeta) {
+      episode = { ...demoMeta, id: demoMeta.episodeId, pageUrl: demoMeta.pageUrl || String(tab?.url || "").split("?")[0] };
     }
-    if (!episode) { setHidden("emptyState", false); byId("emptyState").querySelector("p").textContent = `无法读取这一集，请刷新${activePlatformId === "youtube" ? " YouTube" : "小宇宙"}页面后重试。`; return; }
+    if (!episode) { setHidden("emptyState", false); byId("emptyState").querySelector("p").textContent = `无法读取这一集，请刷新${activePlatformId === "youtube" ? " YouTube" : activePlatformId === "bilibili" ? " B站" : "小宇宙"}页面后重试。`; return; }
     setHidden("episodeCard", false);
     setHidden("viewTabs", false);
     // 缓存检查完成前先不展示空状态，避免已解析节目短暂闪出“还没有原文”。
@@ -3375,13 +3682,16 @@ sections:
     const stored = await chrome.storage.local.get([XYD_SETTINGS.STORAGE_KEY, XYD_SETTINGS.AUTH_KEY, digestCacheKey, transcriptCacheKey(), notesCacheKey()]);
     cloudAuth = stored[XYD_SETTINGS.AUTH_KEY]?.token ? stored[XYD_SETTINGS.AUTH_KEY] : null;
     renderAuthState();
-    const demo = globalThis.XYD_DEMO_DATA?.episodeId === episode.id ? globalThis.XYD_DEMO_DATA : null;
+    const demo = globalThis.XYD_DEMOS?.find?.(episode.id) || null;
     settings = XYD_SETTINGS.normalize(stored[XYD_SETTINGS.STORAGE_KEY]);
     const persistentTranscript = stored[transcriptCacheKey()];
+    let usingDemoTranscript = false;
     if (Array.isArray(persistentTranscript) && persistentTranscript.length) {
       await setTranscript(persistentTranscript, true);
     } else if (demo?.segments?.length) {
-      await setTranscript(demo.segments, true);
+      // demo 兜底：仅在用户从未生成过原文时展示，不持久化，避免覆盖用户之后的真实生成。
+      usingDemoTranscript = true;
+      await setTranscript(demo.segments, false);
     } else {
       if (chrome.storage?.session) {
         try {
@@ -3392,21 +3702,22 @@ sections:
       // 不在打开页面时访问 ASR 创建接口。只有用户主动点击“智能生成”后，
       // ensureTranscript/requestTranscript 才能查询缓存或创建可能计费的转录任务。
     }
-    if (transcriptSegments.length) await seedBackendTranscriptCache();
+    if (transcriptSegments.length && !usingDemoTranscript) await seedBackendTranscriptCache();
     renderTranscript();
     readerNotes = normalizeReaderNotes(stored[notesCacheKey()]);
     renderNotes();
     let cached = stored[digestCacheKey];
-    if (demo?.digest) {
+    // demo 摘要只在「用户从未生成过摘要」时兜底显示，绝不写回缓存、绝不覆盖用户已生成的内容。
+    const userHasDigest = cached?.digest && cached?.mode !== "imported" && cached?.mode !== "demo";
+    if (!userHasDigest && demo?.digest) {
       cached = { digest: normalizeDigest(demo.digest, episode.duration), mode: "imported", savedAt: Date.now() };
-      await chrome.storage.local.set({ [digestCacheKey]: cached });
     }
     if (cached?.digest) { lastMode = cached.mode || "full"; renderDigest(cached.digest); }
     else if (!settings.aiApiKey) showOnlyMain("setupState");
     else showOnlyMain("actions");
-    if (settings.asrProvider === "supadata" && !settings.supadataApiKey) {
-      byId("fullBtn").title = "请先在设置中填写 Supadata API Key";
-    } else if (settings.asrProvider === "aliyun" && !settings.dashscopeApiKey) {
+    if (currentPlatformId() === "youtube" && !settings.supadataApiKey) {
+      byId("fullBtn").title = "YouTube 字幕需要先填写 Supadata API Key";
+    } else if (currentPlatformId() !== "youtube" && currentPlatformId() !== "bilibili" && !settings.dashscopeApiKey) {
       byId("fullBtn").title = "请先在设置中填写阿里云百炼 API Key";
     }
     if (transcriptSegments.length || currentDigest || readerNotes.length) {
@@ -3430,12 +3741,12 @@ sections:
     groupTranscriptForAnnotations,
     locatePhrase,
     normalizeDigest,
+    mergeCloseChapters,
     maxAutoSkipSeconds,
     sanitizeContentStart,
     inferIntroContentStart,
     isLowValueOrPromotionalText,
     ANNOTATION_EDITOR_SYSTEM,
-    COMPANIONS,
     currentPlatformId,
     requestYoutubeTranscript,
   };
