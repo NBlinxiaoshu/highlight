@@ -2436,7 +2436,11 @@ sections:
     };
     for (const item of Array.isArray(all[HISTORY_INDEX_KEY]) ? all[HISTORY_INDEX_KEY] : []) merge(item?.episodeId, item);
     for (const [key, value] of Object.entries(all)) {
-      if (key.startsWith("xyd_digest_") && value?.digest) merge(key.slice("xyd_digest_".length), { hasDigest: true, updatedAt: value.savedAt || 0 });
+      if (key.startsWith("xyd_digest_") && value?.digest) {
+        const rest = key.slice("xyd_digest_".length);
+        const isYT = rest.startsWith("yt_");
+        merge(isYT ? rest.slice(3) : rest, { hasDigest: true, source: isYT ? "youtube" : "xiaoyuzhou", updatedAt: value.savedAt || 0 });
+      }
       if (key.startsWith("xyd_transcript_") && Array.isArray(value) && value.length) merge(key.slice("xyd_transcript_".length), { transcriptCount: value.length });
       if (key.startsWith("xyd_notes_") && Array.isArray(value) && value.length) merge(key.slice("xyd_notes_".length), { noteCount: value.length });
     }
@@ -3405,7 +3409,9 @@ sections:
     } else if (settings.asrProvider === "aliyun" && !settings.dashscopeApiKey) {
       byId("fullBtn").title = "请先在设置中填写阿里云百炼 API Key";
     }
-    await touchHistory({ hasDigest: Boolean(currentDigest), transcriptCount: transcriptSegments.length, noteCount: readerNotes.length });
+    if (transcriptSegments.length || currentDigest || readerNotes.length) {
+      await touchHistory({ hasDigest: Boolean(currentDigest), transcriptCount: transcriptSegments.length, noteCount: readerNotes.length });
+    }
     switchView("transcript");
   }
 
