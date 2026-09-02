@@ -53,75 +53,42 @@
 
 ### 1. 先看懂整期，再决定哪里值得深入
 
-<table>
-  <tr>
-    <td width="50%" valign="top">
-      <b>摘要</b>：简短 / 中等 / 详细三档，快速了解整期内容。<br/><br/>
-      <b>时间轴</b>：把长内容拆成章节地图，每章保留摘要与真实时间位置；先建立全局结构，再决定从哪里开始看。
-    </td>
-    <td width="50%" align="center">
-      <img src="assets/shot-03-summary.png" alt="摘要视图" width="100%" />
-      <br/>
-      <img src="assets/shot-04-timeline.png" alt="时间轴视图" width="100%" />
-    </td>
-  </tr>
-</table>
+- **摘要**：简短 / 中等 / 详细三档，快速了解整期内容。
+- **时间轴**：把长内容拆成章节地图，每章保留摘要与真实时间位置；先建立全局结构，再决定从哪里开始看。
+
+<p align="center"><img src="assets/shot-03-summary.png" alt="摘要视图" width="72%" /></p>
+
+<p align="center"><img src="assets/shot-04-timeline.png" alt="时间轴视图" width="72%" /></p>
 
 ### 2. 不只给结论，还能一键回到原声
 
-<table>
-  <tr>
-    <td width="50%" valign="top">
-      获取字幕或完成转写后，会先整理断句、补充标点，并修正明显不通顺或识别错误的句子，再生成可连续阅读的稿子。<br/><br/>
-      逐字稿保留<b>说话人、时间戳与上下文</b>，点击任意段落即可跳回播放器对应位置；支持「原文 / 中文 / 双语」切换，也会识别片头、广告等低价值内容，并标出金句、数据、方法论和案例。
-    </td>
-    <td width="50%" align="center">
-      <img src="assets/shot-02-transcript.png" alt="原文视图" width="100%" />
-    </td>
-  </tr>
-</table>
+获取字幕或完成转写后，会先整理断句、补充标点，并修正明显不通顺或识别错误的句子，再生成可连续阅读的稿子。
+
+逐字稿保留**说话人、时间戳与上下文**，点击任意段落即可跳回播放器对应位置；支持「原文 / 中文 / 双语」切换，也会识别片头、广告等低价值内容，并标出金句、数据、方法论和案例。
+
+<p align="center"><img src="assets/shot-02-transcript.png" alt="原文视图" width="72%" /></p>
 
 ### 3. 同一期内容，每个人真正关心的部分并不一样
 
-<table>
-  <tr>
-    <td width="50%" valign="top">
-      用户可以设定自己的关注方向，例如 <b>AI 知识 / 产品设计 / 商业化思维 / 自定义主题</b>，让 AI 只高亮与当前目标相关的内容。<br/><br/>
-      高亮以候选状态呈现：可以 ✅ 接受、❌ 取消，也可以主动标出自己认为重要的内容。
-    </td>
-    <td width="50%" align="center">
-      <img src="assets/shot-05-smart.png" alt="智能分析" width="100%" />
-    </td>
-  </tr>
-</table>
+用户可以设定自己的关注方向，例如 **AI 知识 / 产品设计 / 商业化思维 / 自定义主题**，让 AI 只高亮与当前目标相关的内容。
+
+高亮以候选状态呈现：可以 ✅ 接受、❌ 取消，也可以主动标出自己认为重要的内容。
+
+<p align="center"><img src="assets/shot-05-smart.png" alt="智能分析" width="72%" /></p>
 
 ### 4. 有价值的内容，最后要能留下来
 
-<table>
-  <tr>
-    <td width="50%" valign="top">
-      阅读过程中可以把原文片段一键加入笔记，并保留来源与时间戳；支持导出 TXT / Markdown / Word / 网页 / PDF，方便继续整理到自己的知识库。
-    </td>
-    <td width="50%" align="center">
-      <img src="assets/shot-06-notes.png" alt="笔记视图" width="100%" />
-      <br/>
-      <img src="assets/shot-07-export-pdf.png" alt="导出 PDF" width="100%" />
-    </td>
-  </tr>
-</table>
+阅读过程中可以把原文片段一键加入笔记，并保留来源与时间戳；支持导出 TXT / Markdown / Word / 网页 / PDF，方便继续整理到自己的知识库。
+
+<p align="center"><img src="assets/shot-06-notes.png" alt="笔记视图" width="72%" /></p>
+
+<p align="center"><img src="assets/shot-07-export-pdf.png" alt="导出 PDF" width="100%" /></p>
 
 ### 5. 读过的内容可以随时找回来
 
-<table>
-  <tr>
-    <td width="50%" valign="top">
-      解析过的内容会保留在历史记录里，可以搜索、按平台筛选和收藏。不同平台的内容放在同一个列表里，之前做过的笔记也能直接看到。
-    </td>
-    <td width="50%" align="center">
-      <img src="assets/shot-08-history.png" alt="历史记录" width="100%" />
-    </td>
-  </tr>
-</table>
+解析过的内容会保留在历史记录里，可以搜索、按平台筛选和收藏。不同平台的内容放在同一个列表里，之前做过的笔记也能直接看到。
+
+<p align="center"><img src="assets/shot-08-history.png" alt="历史记录" width="100%" /></p>
 
 ---
 
