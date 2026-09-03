@@ -2,6 +2,8 @@
 
 <p align="center"><img src="assets/topping.png" alt="小黄笔：把长视频与播客变成可快速扫读、可回听原声的阅读稿" width="100%" /></p>
 
+<p align="center">🌐 在线体验官网：<a href="https://highlight-d2gwqsq0na49efdf7-1378825327.tcloudbaseapp.com"><strong>highlight-d2gwqsq0na49efdf7-1378825327.tcloudbaseapp.com</strong></a></p>
+
 ## 为什么做这个
 
 一集播客、一场访谈或者一节课程，经常有 1–2 小时。真正想找的内容可能只占几分钟，但从头听到尾很慢；听完以后想找回某句话，又只能重新拖进度条。
